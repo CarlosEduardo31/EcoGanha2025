@@ -39,7 +39,7 @@ export default function PatrocinadorDashboardPage() {
   const [selectedOffer, setSelectedOffer] = useState<string>('');
   const [activeTab, setActiveTab] = useState('search');
    // Handler para mudança de aba
-  const handleTabChange = (tab: string) => {
+  const handleTabChange = (tab: SponsorTabType) => {
     setActiveTab(tab);
   };
   const [recentUsers, setRecentUsers] = useState<UserData[]>([]);
