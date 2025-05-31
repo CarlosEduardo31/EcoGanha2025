@@ -4,7 +4,7 @@ import axios from 'axios';
 
 // Criando instância do axios com URL base
 const api = axios.create({
-  baseURL: 'http://localhost:4000/api',
+  baseURL: 'https://ecoganha2025api.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   }
