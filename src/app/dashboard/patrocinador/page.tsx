@@ -207,9 +207,9 @@ export default function PatrocinadorDashboardPage() {
   };
 
   // Handler para mudança de aba
-  const handleTabChange = (tab: SponsorTabType) => {
-    setActiveTab(tab);
-  };
+  const handleTabChange = (tab: string) => {
+  setActiveTab(tab as SponsorTabType);
+};
 
   if (!user) {
     return (

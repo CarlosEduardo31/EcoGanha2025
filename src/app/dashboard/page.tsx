@@ -20,23 +20,27 @@ export default function PatrocinadorDashboardPage() {
   };
   const [recentUsers, setRecentUsers] = useState<UserData[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([
-    {
-      id: '1',
-      userName: 'Maria da Silva',
-      userPhone: '81999999999',
-      offerTitle: '20% de desconto em qualquer produto',
-      points: 500,
-      date: '2025-05-01T11:20:00'
-    },
-    {
-      id: '2',
-      userName: 'Vandilma Candido',
-      userPhone: '81666666666',
-      offerTitle: 'Cupom de R$15',
-      points: 300,
-      date: '2025-04-28T18:10:00'
-    }
-  ]);
+  {
+    id: '1',
+    userId: '1', // Add missing userId
+    userName: 'Maria da Silva',
+    userPhone: '81999999999',
+    offerId: '1', // Add missing offerId
+    offerTitle: '20% de desconto em qualquer produto',
+    points: 500,
+    date: '2025-05-01T11:20:00'
+  },
+  {
+    id: '2',
+    userId: '4', // Add missing userId  
+    userName: 'Vandilma Candido',
+    userPhone: '81666666666',
+    offerId: '2', // Add missing offerId
+    offerTitle: 'Cupom de R$15',
+    points: 300,
+    date: '2025-04-28T18:10:00'
+  }
+]);
   const router = useRouter();
 
   // Ofertas disponíveis
@@ -152,13 +156,15 @@ export default function PatrocinadorDashboardPage() {
       
       // Atualizar a lista de resgates
       const newRedemption: Redemption = {
-        id: Date.now().toString(),
-        userName: foundUser.name,
-        userPhone: foundUser.phone,
-        offerTitle: offer.title,
-        points: offer.points,
-        date: new Date().toISOString()
-      };
+      id: Date.now().toString(),
+      userId: foundUser.id, // Add missing userId
+      userName: foundUser.name,
+      userPhone: foundUser.phone,
+      offerId: offer.id, // Add missing offerId
+      offerTitle: offer.title,
+      points: offer.points,
+      date: new Date().toISOString()
+    };
       
       setRedemptions(prev => [newRedemption, ...prev]);
       
