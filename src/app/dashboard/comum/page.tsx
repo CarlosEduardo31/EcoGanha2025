@@ -22,12 +22,12 @@ import EcoPointsTab from '@/components/usuario/EcoPointsTab';
 import ProfileTab from '@/components/usuario/ProfileTab';
 import ActivitiesTab from '@/components/usuario/ActivitiesTab';
 import RedemptionsTab from '@/components/usuario/RedemptionsTab';
-import BottomNavigation from '@/components/layout/BottomNavigation';
+import BottomNavigation from '@/components/layout/BottomNavigationComun';
 
 export default function UsuarioComumPage() {
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<SponsorTabType>('home');
+  const [activeTab, setActiveTab] = useState<UserTabType>('home');
   const [selectedPartner, setSelectedPartner] = useState<SelectedPartner | null>(null);
   const [loading, setLoading] = useState(false);
   
@@ -105,10 +105,9 @@ export default function UsuarioComumPage() {
     loadInitialData();
   }, [isAuthenticated, user]);
 
-  // Handler para mudança de aba
-  const handleTabChange = (tab: SponsorTabType) => {
+   // Handler para mudança de aba
+  const handleTabChange = (tab: UserTabType) => {
     setActiveTab(tab);
-    // Se estiver indo para a aba de prêmios e houver um parceiro específico selecionado, limpar a seleção
     if (tab === 'rewards' && selectedPartner) {
       setSelectedPartner(null);
     }
