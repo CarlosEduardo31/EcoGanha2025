@@ -46,7 +46,7 @@ export default function PatrocinadorDashboardPage() {
         setOffers(offersData);
 
         // Carregar histórico de resgates
-        const redemptionsData = await redemptionService.listPartnerRedemptions();
+        const redemptionsData = await redemptionService.getPartnerRedemptions();
         setRedemptions(redemptionsData);
       } catch (error) {
         console.error('Erro ao carregar dados iniciais:', error);
