@@ -27,7 +27,7 @@ import BottomNavigation from '@/components/layout/BottomNavigation';
 export default function UsuarioComumPage() {
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<UserTabType>('home');
+  const [activeTab, setActiveTab] = useState<SponsorTabType>('home');
   const [selectedPartner, setSelectedPartner] = useState<SelectedPartner | null>(null);
   const [loading, setLoading] = useState(false);
   
@@ -106,7 +106,7 @@ export default function UsuarioComumPage() {
   }, [isAuthenticated, user]);
 
   // Handler para mudança de aba
-  const handleTabChange = (tab: UserTabType) => {
+  const handleTabChange = (tab: SponsorTabType) => {
     setActiveTab(tab);
     // Se estiver indo para a aba de prêmios e houver um parceiro específico selecionado, limpar a seleção
     if (tab === 'rewards' && selectedPartner) {
