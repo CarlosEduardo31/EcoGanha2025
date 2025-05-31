@@ -1,7 +1,6 @@
 // src/components/layout/BottomNavigation.tsx
 
 import React from 'react';
-import { UserTabType } from '@/types/comum';
 import { SponsorTabType } from '@/types/patrocinador';
 
 interface BottomNavigationProps {
