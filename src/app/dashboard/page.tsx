@@ -3,31 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-
-// Interfaces para tipagem
-interface UserData {
-  id: string;
-  name: string;
-  phone: string;
-  userType: string;
-  points: number;
-}
-
-interface Offer {
-  id: string;
-  title: string;
-  description: string;
-  points: number;
-}
-
-interface Redemption {
-  id: string;
-  userName: string;
-  userPhone: string;
-  offerTitle: string;
-  points: number;
-  date: string;
-}
+import { SponsorTabType, UserData, Offer, Redemption } from '@/types/patrocinador';
 
 export default function PatrocinadorDashboardPage() {
   const { user, isAuthenticated, findUserByPhone, removePoints, logout } = useAuth();
