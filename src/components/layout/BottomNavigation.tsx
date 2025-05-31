@@ -5,8 +5,8 @@ import { UserTabType } from '@/types/comum';
 import { SponsorTabType } from '@/types/patrocinador';
 
 interface BottomNavigationProps {
-  activeTab: SponsorTabType;
-  onTabChange: (tab: SponsorTabType) => void;
+  activeTab: UserTabType;
+  onTabChange: (tab: UserTabType) => void;
 }
 
 const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabChange }) => {
