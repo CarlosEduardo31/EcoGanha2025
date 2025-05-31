@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { UserTabType } from '@/types/comum';
-import { SponsorTabType } from '@/types/patrocinador';
 
 interface BottomNavigationProps {
   activeTab: UserTabType;
