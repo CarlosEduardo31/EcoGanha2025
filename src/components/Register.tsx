@@ -235,6 +235,7 @@ export function Register() {
     
     setLoading(true);
     setError('');
+    setSuccess('');
     
     try {
       // Prepara os dados para enviar para a API
@@ -254,6 +255,9 @@ export function Register() {
           reference: formData.referencia
         }
       };
+
+       // 👈 Adicione mais debug aqui
+    console.log('Dados sendo enviados:', userData);
       
       // Chama o serviço de registro
       await authService.register(userData);
@@ -261,23 +265,27 @@ export function Register() {
       setSuccess('Cadastro realizado com sucesso!');
       
       // Redirecionar para a página de login após 2 segundos
-      setTimeout(() => {
-        router.push('/login');
-      }, 2000);
-      
-    } catch (error: any) {
-      if (error.response) {
-        setError(error.response.data.message || 'Falha ao realizar cadastro. Tente novamente mais tarde.');
-      } else if (error.request) {
-        setError('Servidor indisponível. Tente novamente mais tarde.');
-      } else {
-        setError('Erro ao processar sua solicitação.');
-      }
-      console.error('Erro no cadastro:', error);
-    } finally {
-      setLoading(false);
+      router.push('/login');
+    
+  } catch (error: any) {
+    console.error('Erro completo no cadastro:', error); // 👈 Log completo
+    
+    // 👈 Melhor tratamento de erro
+    if (error.response?.data?.message) {
+      setError(error.response.data.message);
+    } else if (error.response?.status === 400) {
+      setError('Dados inválidos. Verifique as informações e tente novamente.');
+    } else if (error.response?.status === 409) {
+      setError('Este telefone já está cadastrado.');
+    } else if (error.request) {
+      setError('Servidor indisponível. Tente novamente mais tarde.');
+    } else {
+      setError('Erro ao processar sua solicitação.');
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-white">
