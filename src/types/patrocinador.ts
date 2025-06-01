@@ -16,6 +16,7 @@ export interface Offer {
   title: string;
   description: string;
   points: number;
+  quantity: number; 
 }
 
 // Interface para os resgates realizados
@@ -28,4 +29,31 @@ export interface Redemption {
   offerTitle: string;
   points: number;
   date: string;
+}
+
+
+// Interfaces auxiliares para formulários
+
+// Interface para dados de criação de oferta
+export interface CreateOfferData {
+  title: string;
+  description: string;
+  points: number;
+  quantity: number;        // <- NOVO CAMPO
+  validUntil?: string;
+}
+
+// Interface para dados de atualização de oferta
+export interface UpdateOfferData {
+  title?: string;
+  description?: string;
+  points?: number;
+  quantity?: number;       // <- NOVO CAMPO
+  validUntil?: string;
+}
+
+// Interface para dados de resgate
+export interface RedemptionRequestData {
+  userId: string;
+  offerId: string;
 }

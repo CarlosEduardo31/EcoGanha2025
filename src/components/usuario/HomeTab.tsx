@@ -129,7 +129,7 @@ const HomeTab: React.FC<HomeTabProps> = ({
         </div>
       </div>
 
-      {/* Ofertas em Destaque */}
+      {/* Ofertas em Destaque - ATUALIZADO com controle de quantidade */}
       <div className="bg-white rounded-lg shadow-md p-4 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-[#003F25] font-semibold text-lg">Ofertas em Destaque</h2>
@@ -141,69 +141,95 @@ const HomeTab: React.FC<HomeTabProps> = ({
           </button>
         </div>
         
-        {partners.length > 0 ? (
-          <div className="overflow-x-auto pb-2 -mx-4 px-4">
-            <div className="flex space-x-4 w-max">
-              {partners.slice(0, 3).map(partner => (
-                <div key={partner.id} className="bg-gray-50 rounded-lg p-3 min-w-[200px] border border-gray-100 hover:shadow-md transition-shadow">
-                  <div className="flex items-center mb-3">
-                    {partner.logo ? (
-                      <Image 
-                        src={partner.logo} 
-                        alt={partner.name} 
-                        width={32} 
-                        height={32}
-                        className="w-8 h-8 mr-2 rounded"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 bg-[#FBCA27] rounded mr-2 flex items-center justify-center">
-                        <span className="text-[#003F25] text-sm font-bold">
-                          {partner.name.charAt(0)}
-                        </span>
+        {/* ATUALIZADO: Filtrar parceiros com ofertas disponíveis */}
+        {(() => {
+          const partnersWithAvailableOffers = partners.filter(partner => 
+            partner.offers && partner.offers.some(offer => offer.quantity > 0)
+          );
+          
+          return partnersWithAvailableOffers.length > 0 ? (
+            <div className="overflow-x-auto pb-2 -mx-4 px-4">
+              <div className="flex space-x-4 w-max">
+                {partnersWithAvailableOffers.slice(0, 3).map(partner => {
+                  // Pegar primeira oferta disponível
+                  const availableOffer = partner.offers?.find(offer => offer.quantity > 0);
+                  
+                  return (
+                    <div key={partner.id} className="bg-gray-50 rounded-lg p-3 min-w-[200px] border border-gray-100 hover:shadow-md transition-shadow">
+                      <div className="flex items-center mb-3">
+                        {partner.logo ? (
+                          <Image 
+                            src={partner.logo} 
+                            alt={partner.name} 
+                            width={32} 
+                            height={32}
+                            className="w-8 h-8 mr-2 rounded"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 bg-[#FBCA27] rounded mr-2 flex items-center justify-center">
+                            <span className="text-[#003F25] text-sm font-bold">
+                              {partner.name.charAt(0)}
+                            </span>
+                          </div>
+                        )}
+                        <h3 className="font-medium text-sm">{partner.name}</h3>
                       </div>
-                    )}
-                    <h3 className="font-medium text-sm">{partner.name}</h3>
-                  </div>
-                  {partner.offers && partner.offers.length > 0 && (
-                    <>
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                        {partner.offers[0].title}
-                      </p>
-                      <div className="flex justify-between items-center">
-                        <span className="text-[#003F25] font-medium text-sm">
-                          {Number(partner.offers[0].points) || 0} pontos
-                        </span>
-                        <button 
-                          onClick={() => {
-                            setSelectedPartner({
-                              ...partner,
-                              location: partner.location || "Stand do São João, Pátio de Eventos"
-                            });
-                            onTabChange('rewards');
-                          }}
-                          className="bg-[#003F25] text-white text-xs px-3 py-1.5 rounded-md hover:bg-[#002918] transition-colors"
-                        >
-                          Ver mais
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))}
+                      {availableOffer && (
+                        <>
+                          <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                            {availableOffer.title}
+                          </p>
+                          
+                          {/* NOVO: Mostrar quantidade disponível */}
+                          <div className="mb-3">
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              availableOffer.quantity > 10 
+                                ? 'bg-green-100 text-green-700'
+                                : availableOffer.quantity > 5
+                                  ? 'bg-yellow-100 text-yellow-700' 
+                                  : 'bg-orange-100 text-orange-700'
+                            }`}>
+                              {availableOffer.quantity} disponíveis
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#003F25] font-medium text-sm">
+                              {Number(availableOffer.points) || 0} pontos
+                            </span>
+                            <button 
+                              onClick={() => {
+                                setSelectedPartner({
+                                  ...partner,
+                                  location: partner.location || "Stand do São João, Pátio de Eventos"
+                                });
+                                onTabChange('rewards');
+                              }}
+                              className="bg-[#003F25] text-white text-xs px-3 py-1.5 rounded-md hover:bg-[#002918] transition-colors"
+                            >
+                              Ver mais
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="text-center py-6">
-            <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto flex items-center justify-center mb-3">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+          ) : (
+            <div className="text-center py-6">
+              <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto flex items-center justify-center mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-gray-500 text-sm">
+                Nenhuma oferta disponível no momento.
+              </p>
             </div>
-            <p className="text-gray-500 text-sm">
-              Nenhuma oferta disponível no momento.
-            </p>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </>
   );

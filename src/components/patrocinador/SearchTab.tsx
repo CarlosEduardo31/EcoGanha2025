@@ -30,6 +30,13 @@ const SearchTab: React.FC<SearchTabProps> = ({
   onSearch,
   onRedeemPoints
 }) => {
+  // Filtrar apenas ofertas disponíveis (quantity > 0)
+  const availableOffers = offers.filter(offer => offer.quantity > 0);
+  
+  // Verificar se a oferta selecionada ainda está disponível
+  const selectedOfferData = offers.find(o => o.id === selectedOffer);
+  const isSelectedOfferAvailable = selectedOfferData && selectedOfferData.quantity > 0;
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mb-6">
       <h2 className="text-[#003F25] font-semibold text-lg mb-4">Buscar Cliente</h2>
@@ -96,7 +103,8 @@ const SearchTab: React.FC<SearchTabProps> = ({
           
           <div className="mb-4">
             <div className="space-y-2">
-              {offers.map((offer) => (
+              {/* ATUALIZADO: Usar apenas ofertas disponíveis */}
+              {availableOffers.map((offer) => (
                 <div 
                   key={offer.id} 
                   className={`border rounded-md p-3 cursor-pointer transition-colors ${
@@ -107,38 +115,72 @@ const SearchTab: React.FC<SearchTabProps> = ({
                   onClick={() => setSelectedOffer(offer.id)}
                 >
                   <div className="flex justify-between items-start">
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-medium">{offer.title}</h4>
                       <p className="text-sm text-gray-500">{offer.description}</p>
-                    </div>
-                    <div className="text-[#003F25] font-semibold">
-                      {offer.points} pontos
+                      
+                      {/* NOVO: Mostrar quantidade disponível */}
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="text-[#003F25] font-semibold">
+                          {offer.points} pontos
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          offer.quantity > 10 
+                            ? 'bg-green-100 text-green-700'
+                            : offer.quantity > 5
+                              ? 'bg-yellow-100 text-yellow-700' 
+                              : 'bg-orange-100 text-orange-700'
+                        }`}>
+                          {offer.quantity} restantes
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
 
-              {offers.length === 0 && (
-                <p className="text-center py-4 text-gray-500">
-                  Nenhuma oferta disponível. Por favor, adicione ofertas na aba Ofertas.
-                </p>
+              {availableOffers.length === 0 && (
+                <div className="text-center py-6">
+                  {offers.length === 0 ? (
+                    <p className="text-gray-500">
+                      Nenhuma oferta cadastrada. Por favor, adicione ofertas na aba Ofertas.
+                    </p>
+                  ) : (
+                    <p className="text-gray-500">
+                      Todas as ofertas estão esgotadas. Por favor, reponha o estoque na aba Ofertas.
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           </div>
 
-          {selectedOffer && (
+          {/* ATUALIZADO: Validar se oferta ainda está disponível */}
+          {selectedOffer && isSelectedOfferAvailable && (
             <div className="bg-gray-100 p-3 rounded-md mb-4">
               <p className="text-center font-medium">
                 Pontos a resgatar: <span className="text-[#003F25]">
-                  {offers.find(o => o.id === selectedOffer)?.points || 0}
+                  {selectedOfferData?.points || 0}
+                </span>
+              </p>
+              <p className="text-center text-sm text-gray-600 mt-1">
+                Quantidade restante após resgate: <span className="font-medium">
+                  {(selectedOfferData?.quantity || 1) - 1}
                 </span>
               </p>
             </div>
           )}
 
+          {/* NOVO: Aviso se oferta selecionada não está mais disponível */}
+          {selectedOffer && !isSelectedOfferAvailable && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              A oferta selecionada não está mais disponível. Por favor, selecione outra oferta.
+            </div>
+          )}
+
           <button
             onClick={onRedeemPoints}
-            disabled={loading || !selectedOffer}
+            disabled={loading || !selectedOffer || !isSelectedOfferAvailable || availableOffers.length === 0}
             className="w-full bg-[#003F25] text-white py-2 px-4 rounded-md hover:bg-[#002918] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
             {loading ? (
@@ -146,6 +188,12 @@ const SearchTab: React.FC<SearchTabProps> = ({
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
+            ) : !selectedOffer ? (
+              'Selecione uma oferta'
+            ) : !isSelectedOfferAvailable ? (
+              'Oferta não disponível'
+            ) : availableOffers.length === 0 ? (
+              'Nenhuma oferta disponível'
             ) : (
               'Confirmar Resgate'
             )}

@@ -96,7 +96,7 @@ export default function PatrocinadorDashboardPage() {
     setSelectedOffer('');
   };
 
-  // Resgatar pontos
+  // Resgatar pontos - ATUALIZADO para lidar com quantidade
   const handleRedeemPoints = async () => {
     if (!foundUser) {
       setError('Nenhum usuário selecionado');
@@ -114,6 +114,12 @@ export default function PatrocinadorDashboardPage() {
       return;
     }
 
+    // NOVA VALIDAÇÃO: Verificar se oferta ainda tem estoque
+    if (offer.quantity <= 0) {
+      setError('Esta oferta não está mais disponível (estoque esgotado)');
+      return;
+    }
+
     if (foundUser.points < offer.points) {
       setError(`Pontos insuficientes. O usuário tem ${foundUser.points} pontos, mas a oferta requer ${offer.points} pontos.`);
       return;
@@ -125,10 +131,17 @@ export default function PatrocinadorDashboardPage() {
 
     try {
       // Chamar serviço para registrar o resgate
-      await redemptionService.create({
+      const redemptionResult = await redemptionService.create({
         userId: foundUser.id,
         offerId: selectedOffer
       });
+      
+      // ATUALIZADO: Decrementar quantidade da oferta na UI imediatamente
+      setOffers(prev => prev.map(o => 
+        o.id === selectedOffer 
+          ? { ...o, quantity: Math.max(0, o.quantity - 1) }
+          : o
+      ));
       
       // Buscar usuário atualizado para obter os pontos atualizados
       const updatedUser = await findUserByPhone(foundUser.phone);
@@ -147,7 +160,12 @@ export default function PatrocinadorDashboardPage() {
       
       setRedemptions(prev => [newRedemption, ...prev]);
       
-      setSuccess(`Resgate bem-sucedido! ${offer.points} pontos foram descontados do usuário ${foundUser.name}.`);
+      // ATUALIZADO: Mensagem incluindo informação sobre quantidade restante
+      const remainingQuantity = Math.max(0, offer.quantity - 1);
+      setSuccess(
+        `Resgate bem-sucedido! ${offer.points} pontos foram descontados do usuário ${foundUser.name}. ` +
+        `${remainingQuantity > 0 ? `Restam ${remainingQuantity} unidades desta oferta.` : 'Esta oferta está esgotada.'}`
+      );
       
       // Atualizar o usuário encontrado
       if (updatedUser) {
@@ -163,17 +181,25 @@ export default function PatrocinadorDashboardPage() {
         });
       }
       
-      // Limpar seleção
-      setSelectedOffer('');
-    } catch (error) {
-      setError('Erro ao processar resgate');
+      // Limpar seleção se a oferta ficou esgotada
+      if (remainingQuantity <= 0) {
+        setSelectedOffer('');
+      }
+      
+    } catch (error: any) {
+      // Lidar com erros específicos da API
+      if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else {
+        setError('Erro ao processar resgate');
+      }
       console.error('Erro ao processar resgate:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Gerenciar ofertas
+  // Gerenciar ofertas - ATUALIZADO para incluir quantidade
   const handleAddOffer = async (offer: Omit<Offer, 'id'>) => {
     try {
       const newOffer = await offerService.create(offer);
@@ -196,20 +222,21 @@ export default function PatrocinadorDashboardPage() {
     }
   };
 
-  const handleDeleteOffer = async (offerId: string) => {
+  const handleDeleteOffer = async (offerId: string): Promise<void> => {
     try {
       await offerService.remove(offerId);
       setOffers(prev => prev.filter(offer => offer.id !== offerId));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao excluir oferta:', error);
+      // Re-throw o erro para que o componente possa tratá-lo
       throw error;
     }
   };
 
   // Handler para mudança de aba
   const handleTabChange = (tab: string) => {
-  setActiveTab(tab as SponsorTabType);
-};
+    setActiveTab(tab as SponsorTabType);
+  };
 
   if (!user) {
     return (

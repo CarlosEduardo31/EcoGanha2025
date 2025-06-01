@@ -32,6 +32,7 @@ export interface Offer {
   description?: string;
   points: number;
   validUntil?: string;
+   quantity: number; 
 }
 
 export interface RecycleTransaction {
