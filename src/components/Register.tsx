@@ -269,6 +269,8 @@ export function Register() {
     
   } catch (error: any) {
     console.error('Erro completo no cadastro:', error); // 👈 Log completo
+     console.error('Response data:', error.response?.data); // 👈 Ver a resposta exata
+  console.error('Response status:', error.response?.status);
     
     // 👈 Melhor tratamento de erro
     if (error.response?.data?.message) {
@@ -292,7 +294,7 @@ export function Register() {
       {/* Logo */}
       <div className="mb-6">
         <Image
-          src="/logoSVG.svg"
+          src="/logoSVG.png"
           alt="EcoGanha Logo"
           width={120}
           height={120}
@@ -352,6 +354,7 @@ export function Register() {
                   id="nome"
                   name="nome"
                   type="text"
+                  autoComplete="name"
                   placeholder="Digite seu nome completo"
                   value={formData.nome}
                   onChange={handleChange}
@@ -368,6 +371,7 @@ export function Register() {
                   id="telefone"
                   name="telefone"
                   type="tel"
+                  autoComplete="tel"
                   placeholder="(00) 00000-0000"
                   value={formData.telefone}
                   onChange={handlePhoneChange}
@@ -384,6 +388,7 @@ export function Register() {
                   id="senha"
                   name="senha"
                   type="password"
+                  autoComplete="new-password"
                   placeholder="Mínimo de 6 caracteres"
                   value={formData.senha}
                   onChange={handleChange}
@@ -401,6 +406,7 @@ export function Register() {
                   id="confirmSenha"
                   name="confirmSenha"
                   type="password"
+                  autoComplete="new-password"
                   placeholder="Digite sua senha novamente"
                   value={formData.confirmSenha}
                   onChange={handleChange}
@@ -423,6 +429,7 @@ export function Register() {
                     id="cep"
                     name="cep"
                     type="text"
+                    autoComplete="postal-code"
                     placeholder="00000-000"
                     value={formData.cep}
                     onChange={handleCEPChange}
@@ -450,6 +457,7 @@ export function Register() {
                   id="logradouro"
                   name="logradouro"
                   type="text"
+                  autoComplete="street-address"
                   placeholder="Rua, Avenida, etc."
                   value={formData.logradouro}
                   onChange={handleChange}
@@ -516,6 +524,7 @@ export function Register() {
                     id="cidade"
                     name="cidade"
                     type="text"
+                    autoComplete="address-level2"
                     placeholder="Sua cidade"
                     value={formData.cidade}
                     onChange={handleChange}

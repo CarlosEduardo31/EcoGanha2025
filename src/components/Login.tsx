@@ -152,7 +152,7 @@ export function Login() {
       {/* Logo */}
       <div className="mb-8">
         <Image
-          src="/logoSVG.svg"
+          src="/logoSVG.png"
           alt="EcoGanha Logo"
           width={120}
           height={120}
