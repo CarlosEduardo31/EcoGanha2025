@@ -260,12 +260,26 @@ export function Register() {
     console.log('Dados sendo enviados:', userData);
       
       // Chama o serviço de registro
-      await authService.register(userData);
+      // await authService.register(userData);
+      const user = await authService.register(userData);
       
       setSuccess('Cadastro realizado com sucesso!');
       
       // Redirecionar para a página de login após 2 segundos
-      router.push('/login');
+      // router.push('/login');
+
+      if (user) {
+      // Redirecionar baseado no tipo de usuário
+      if (user.userType === 'comum') {
+        window.location.href = '/dashboard/comum';
+      } else if (user.userType === 'ecoponto') {
+        window.location.href = '/dashboard/ecoponto';
+      } else if (user.userType === 'patrocinador') {
+        window.location.href = '/dashboard/patrocinador';
+      } else {
+        window.location.href = '/dashboard';
+      }
+    }
     
   } catch (error: any) {
     console.error('Erro completo no cadastro:', error); // 👈 Log completo
