@@ -1,24 +1,32 @@
-// import type { Metadata } from "next";
-// import { Poppins } from "next/font/google";
-// import "./globals.css";
+// src/app/layout.tsx (Server Component)
+// import { ClientLayout } from '../components/ClientLayout';
+// import './globals.css';
 
-// const poppins = Poppins({ subsets: ["latin"],weight:["300", "400","600","700"] });
-
-// export const metadata: Metadata = {
-//   title: "EcoGanha",
-//   description: "",
-// };
+// export const metadata = {
+//   title: 'EcoGanha - São João de Caruaru',
+//   description: 'Transforme lixo em luxo com nossos eco-descontos',
+//   manifest: '/manifest.json',
+//   themeColor: '#003F25',
+//   viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+//   appleWebApp: {
+//     capable: true,
+//     statusBarStyle: 'black-translucent',
+//     title: 'EcoGanha',
+//   },
+// }
 
 // export default function RootLayout({
 //   children,
-// }: Readonly<{
-//   children: React.ReactNode;
-// }>) {
+// }: {
+//   children: React.ReactNode
+// }) {
 //   return (
-//     <html lang="en">
-//       <body className={poppins.className}>{children}</body>
+//     <html lang="pt-BR">
+//       <body>
+//         <ClientLayout>{children}</ClientLayout>
+//       </body>
 //     </html>
-//   );
+//   )
 // }
 
 
@@ -28,14 +36,42 @@ import './globals.css';
 
 export const metadata = {
   title: 'EcoGanha - São João de Caruaru',
-  description: 'Transforme lixo em luxo com nossos eco-descontos',
+  description: 'Transforme lixo em luxo com nossos eco-descontos no São João de Caruaru',
   manifest: '/manifest.json',
   themeColor: '#003F25',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'EcoGanha',
+  
+  // Open Graph para WhatsApp/Facebook
+  openGraph: {
+    title: 'EcoGanha - São João de Caruaru',
+    description: 'Transforme lixo em luxo com nossos eco-descontos no São João de Caruaru',
+    url: 'https://eco-ganha2025.vercel.app/',
+    siteName: 'EcoGanha',
+    images: [
+      {
+        url: '/icons/icon-192x192.png', 
+        width: 1200,
+        height: 630,
+        alt: 'EcoGanha - São João de Caruaru',
+      },
+    ],
+    locale: 'pt_BR',
+    type: 'website',
+  },
+
+  // Twitter
+  twitter: {
+    card: 'summary_large_image',
+    title: 'EcoGanha - São João de Caruaru',
+    description: 'Transforme lixo em luxo com nossos eco-descontos no São João de Caruaru',
+    images: ['/icons/icon-192x192.png'],
+  },
+
+  // Substitua appleWebApp por outras tags
+  other: {
+    'mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'black-translucent',
+    'apple-mobile-web-app-title': 'EcoGanha',
   },
 }
 
