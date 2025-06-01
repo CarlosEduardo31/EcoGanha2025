@@ -49,19 +49,22 @@ export default function PatrocinadorDashboardPage() {
       id: '1', 
       title: '20% de desconto em qualquer produto', 
       description: 'Válido para compras acima de R$100',
-      points: 500 
+      points: 500,
+      quantity: 100
     },
     { 
       id: '2', 
       title: 'Cupom de R$15', 
       description: 'Válido para compras acima de R$30',
-      points: 300 
+      points: 300,
+      quantity: 50
     },
     { 
       id: '3', 
       title: '10% de desconto em frutas e verduras', 
       description: 'Válido uma vez por semana',
-      points: 400 
+      points: 400,
+      quantity: 75
     },
   ];
 
