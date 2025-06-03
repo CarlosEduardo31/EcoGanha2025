@@ -5,7 +5,7 @@ require('dotenv').config();
 
 // Criando instância do axios com URL base
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://ecoganha2025api.onrender.com/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
     'Content-Type': 'application/json',
   }
