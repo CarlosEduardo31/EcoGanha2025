@@ -92,21 +92,43 @@ const RewardsTab: React.FC<RewardsTabProps> = ({
                 selectedPartner.offers
                   .filter(offer => offer.quantity > 0)
                   .map(offer => (
-                    <div key={offer.id} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-[#003F25]">{offer.title}</h4>
+                     <div key={offer.id} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                      <div className="flex flex-col sm:flex-row gap-4 mb-3 sm:min-h-[160px]">
+                        {/* NOVO: Mostrar imagem da oferta - ocupa toda altura em tablets+ */}
+                        {offer.image ? (
+                          <img
+                            src={offer.image}
+                            alt={offer.title}
+                            className="w-full h-48 sm:w-40 h-48 sm:h-full object-scale-down rounded-lg border border-gray-200 flex-shrink-0 self-center"
+                          />
+                        ) : (
+                          <div className="w-full sm:w-40 h-48 sm:h-full bg-gray-100 rounded-lg border border-gray-200 flex-shrink-0 flex items-center justify-center self-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        )}
+                        
+                        <div className="flex-1 space-y-3">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                            <h4 className="font-medium text-[#003F25] text-lg">{offer.title}</h4>
+                            <div className="bg-[#FBCA27] px-3 py-1 rounded-full text-sm font-medium text-[#003F25] self-start">
+                              {Number(offer.points) || 0} pontos
+                            </div>
+                          </div>
+                          
                           {offer.description && (
-                            <p className="text-sm text-gray-600 mt-1">{offer.description}</p>
+                            <p className="text-sm text-gray-600">{offer.description}</p>
                           )}
+                          
                           {offer.validUntil && (
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-gray-500">
                               Válido até: {new Date(offer.validUntil).toLocaleDateString('pt-BR')}
                             </p>
                           )}
                           
-                          {/* NOVO: Mostrar quantidade disponível */}
-                          <div className="flex items-center gap-2 mt-2">
+                          {/* Mostrar quantidade disponível */}
+                          <div className="flex items-center gap-2">
                             <span className={`text-xs px-2 py-1 rounded-full ${
                               offer.quantity > 10 
                                 ? 'bg-green-100 text-green-700'
@@ -122,25 +144,24 @@ const RewardsTab: React.FC<RewardsTabProps> = ({
                               </span>
                             )}
                           </div>
+                          
+                          {/* Status de pontos */}
+                          <div className={`py-2 px-3 rounded-md text-center text-sm ${
+                            user.points >= (Number(offer.points) || 0)
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-gray-100 text-gray-500'
+                          }`}>
+                            {user.points >= (Number(offer.points) || 0)
+                              ? `✓ Você tem pontos suficientes (${user.points}/${Number(offer.points) || 0})` 
+                              : `Faltam ${(Number(offer.points) || 0) - user.points} pontos para resgatar`}
+                          </div>
+                          
+                          {/* Instruções de resgate */}
+                          <div className="text-sm text-[#003F25] bg-[#f0f9f6] p-3 rounded-md">
+                            <p className="font-medium mb-1">Como resgatar:</p>
+                            <p>Visite o stand da {selectedPartner.name} e apresente seu perfil no app para o atendente resgatar este prêmio.</p>
+                          </div>
                         </div>
-                        <div className="bg-[#FBCA27] px-3 py-1 rounded-full text-sm font-medium text-[#003F25] ml-3">
-                          {Number(offer.points) || 0} pontos
-                        </div>
-                      </div>
-                      
-                      <div className={`py-2 px-3 rounded-md text-center text-sm mb-3 ${
-                        user.points >= (Number(offer.points) || 0)
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-500'
-                      }`}>
-                        {user.points >= (Number(offer.points) || 0)
-                          ? `✓ Você tem pontos suficientes (${user.points}/${Number(offer.points) || 0})` 
-                          : `Faltam ${(Number(offer.points) || 0) - user.points} pontos para resgatar`}
-                      </div>
-                      
-                      <div className="text-sm text-[#003F25] bg-[#f0f9f6] p-3 rounded-md">
-                        <p className="font-medium mb-1">Como resgatar:</p>
-                        <p>Visite o stand da {selectedPartner.name} e apresente seu perfil no app para o atendente resgatar este prêmio.</p>
                       </div>
                     </div>
                   ))

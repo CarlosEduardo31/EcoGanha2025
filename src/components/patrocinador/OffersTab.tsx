@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ImageUpload from '../common/ImageUpload'; // <- NOVO IMPORT
 
 interface OffersTabProps {
   offers: any[];
@@ -19,6 +20,7 @@ const OffersTab: React.FC<OffersTabProps> = ({
   const [formDescription, setFormDescription] = useState('');
   const [formPoints, setFormPoints] = useState('');
   const [formQuantity, setFormQuantity] = useState('');
+  const [formImage, setFormImage] = useState<string | null>(null); // <- NOVO ESTADO
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -29,6 +31,7 @@ const OffersTab: React.FC<OffersTabProps> = ({
     setFormDescription('');
     setFormPoints('');
     setFormQuantity('');
+    setFormImage(null); // <- LIMPAR IMAGEM
     setError('');
   };
 
@@ -39,6 +42,7 @@ const OffersTab: React.FC<OffersTabProps> = ({
     setFormDescription(offer.description);
     setFormPoints(offer.points.toString());
     setFormQuantity(offer.quantity?.toString() || '1');
+    setFormImage(offer.image || null); // <- CARREGAR IMAGEM
     setError('');
   };
 
@@ -55,7 +59,8 @@ const OffersTab: React.FC<OffersTabProps> = ({
       title: formTitle,
       description: formDescription,
       points: parseInt(formPoints),
-      quantity: parseInt(formQuantity)
+      quantity: parseInt(formQuantity),
+      image: formImage // <- INCLUIR IMAGEM
     };
     
     if (isAddingOffer) {
@@ -71,6 +76,7 @@ const OffersTab: React.FC<OffersTabProps> = ({
     setFormDescription('');
     setFormPoints('');
     setFormQuantity('');
+    setFormImage(null); // <- LIMPAR IMAGEM
     setError('');
   };
 
@@ -81,10 +87,10 @@ const OffersTab: React.FC<OffersTabProps> = ({
     setFormDescription('');
     setFormPoints('');
     setFormQuantity('');
+    setFormImage(null); // <- LIMPAR IMAGEM
     setError('');
   };
 
-  // Função para lidar com exclusão
   const handleDelete = async (offerId: string, offerTitle: string) => {
     if (!confirm(`Tem certeza que deseja excluir a oferta "${offerTitle}"?`)) {
       return;
@@ -104,7 +110,6 @@ const OffersTab: React.FC<OffersTabProps> = ({
     }
   };
 
-  // NOVA FUNÇÃO: Desativar oferta (zerar quantidade)
   const handleDeactivate = async (offer: any) => {
     if (!confirm(`Tem certeza que deseja desativar a oferta "${offer.title}"? Ela ficará indisponível para novos resgates.`)) {
       return;
@@ -114,7 +119,6 @@ const OffersTab: React.FC<OffersTabProps> = ({
     setError('');
     
     try {
-      // Atualizar oferta com quantidade 0
       await onUpdateOffer({
         ...offer,
         quantity: 0
@@ -165,12 +169,19 @@ const OffersTab: React.FC<OffersTabProps> = ({
       
       {(isAddingOffer || editingOfferId) && (
         <div className="border border-gray-200 rounded-md p-4 mb-4">
-          <h3 className="font-medium text-lg mb-3">
+          <h3 className="font-medium text-lg mb-4">
             {isAddingOffer ? 'Adicionar Nova Oferta' : 'Editar Oferta'}
           </h3>
           
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* NOVO: Campo de upload de imagem */}
+            <ImageUpload
+              currentImage={formImage}
+              onImageChange={setFormImage}
+              maxSizeMB={0.5}
+            />
+            
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Título da Oferta
               </label>
@@ -184,7 +195,7 @@ const OffersTab: React.FC<OffersTabProps> = ({
               />
             </div>
             
-            <div className="mb-3">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Descrição
               </label>
@@ -198,7 +209,7 @@ const OffersTab: React.FC<OffersTabProps> = ({
               ></textarea>
             </div>
             
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Pontos Necessários
@@ -230,7 +241,7 @@ const OffersTab: React.FC<OffersTabProps> = ({
               </div>
             </div>
             
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end space-x-2 pt-4">
               <button
                 type="button"
                 onClick={cancelForm}
@@ -249,7 +260,7 @@ const OffersTab: React.FC<OffersTabProps> = ({
         </div>
       )}
       
-      {/* Lista de ofertas */}
+      {/* Lista de ofertas - ATUALIZADA para mostrar imagens */}
       <div className="space-y-3">
         {offers.length === 0 ? (
           <p className="text-center py-4 text-gray-500">
@@ -261,7 +272,22 @@ const OffersTab: React.FC<OffersTabProps> = ({
               key={offer.id} 
               className="border rounded-md p-3 transition-colors border-gray-200 hover:bg-gray-50"
             >
-              <div className="flex justify-between items-start">
+              <div className="flex items-start space-x-3">
+                {/* NOVO: Mostrar imagem da oferta */}
+                {offer.image ? (
+                  <img
+                    src={offer.image}
+                    alt={offer.title}
+                    className="w-20 h-20 object-cover rounded-md border border-gray-200 flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-gray-100 rounded-md border border-gray-200 flex-shrink-0 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                )}
+                
                 <div className="flex-1">
                   <h4 className="font-medium">{offer.title}</h4>
                   <p className="text-sm text-gray-500">{offer.description}</p>
@@ -296,7 +322,6 @@ const OffersTab: React.FC<OffersTabProps> = ({
                     Editar
                   </button>
                   
-                  {/* Mostrar botão apropriado baseado no status */}
                   {offer.quantity > 0 ? (
                     <>
                       <button

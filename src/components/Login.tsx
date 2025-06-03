@@ -148,7 +148,7 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-white">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-[#FBCA27]">
       {/* Logo */}
       <div className="mb-8">
         <Image
@@ -161,8 +161,8 @@ export function Login() {
       </div>
       
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="bg-[#FBCA27] py-4">
-          <h2 className="text-center text-[#003F25] font-semibold text-xl">Entrar no EcoGanha</h2>
+        <div className="bg-[#003F25] py-4">
+          <h2 className="text-center text-white font-semibold text-xl">Entrar no EcoGanha</h2>
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -244,7 +244,7 @@ export function Login() {
         </div>
       </div>
       
-      <div className="mt-8 text-center text-sm text-gray-500">
+      <div className="mt-8 text-center text-sm text-[#003F25]">
         <p>EcoGanha - São João de Caruaru 2025</p>
       </div>
     </div>

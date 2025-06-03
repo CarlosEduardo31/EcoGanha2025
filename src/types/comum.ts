@@ -26,13 +26,17 @@ export interface Partner {
   offers: Offer[];
 }
 
+// Interface para ofertas - ATUALIZADA com quantity e image
 export interface Offer {
   id: string;
   title: string;
   description?: string;
   points: number;
+  quantity: number;        // <- CAMPO ADICIONADO
+  image?: string | null;   // <- NOVO CAMPO PARA IMAGEM BASE64
   validUntil?: string;
-   quantity: number; 
+  createdAt?: string;      // <- Campo opcional
+  updatedAt?: string;      // <- Campo opcional
 }
 
 export interface RecycleTransaction {

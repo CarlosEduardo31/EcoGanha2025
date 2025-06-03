@@ -10,13 +10,17 @@ export interface UserData {
   points: number;
 }
 
-// Interface para as ofertas do patrocinador
+// Interface para as ofertas do patrocinador - ATUALIZADA com quantity e image
 export interface Offer {
   id: string;
   title: string;
   description: string;
   points: number;
-  quantity: number; 
+  quantity: number;        // <- CAMPO ADICIONADO
+  image?: string | null;   // <- NOVO CAMPO PARA IMAGEM BASE64
+  validUntil?: string;     // <- Campo opcional para data de validade
+  createdAt?: string;      // <- Campo opcional para data de criação
+  updatedAt?: string;      // <- Campo opcional para data de atualização
 }
 
 // Interface para os resgates realizados
@@ -30,7 +34,6 @@ export interface Redemption {
   points: number;
   date: string;
 }
-
 
 // Interfaces auxiliares para formulários
 
