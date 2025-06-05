@@ -51,6 +51,12 @@ const SearchTab: React.FC<SearchTabProps> = ({
     }
   };
 
+  // NOVO: Função para verificar se o telefone está válido
+  const isPhoneValid = (phone: string) => {
+    const numbers = phone.replace(/\D/g, '');
+    return numbers.length === 10 || numbers.length === 11;
+  };
+
   // Função para extrair apenas os números do telefone
   const getPhoneNumbers = (phone: string) => {
     return phone.replace(/\D/g, '');
@@ -77,19 +83,20 @@ const SearchTab: React.FC<SearchTabProps> = ({
     <div className="bg-white rounded-lg shadow-md p-4 mb-6">
       <h2 className="text-[#003F25] font-semibold text-lg mb-4">Buscar Cliente</h2>
       
-      <div className="flex mb-4">
+      {/* ATUALIZADO: Layout responsivo */}
+      <div className="flex flex-col sm:flex-row mb-4 gap-2 sm:gap-0">
         <input
           type="tel"
           placeholder="(11) 99999-9999"
           value={formatPhone(searchPhone)} // Mostra formatado mas salva apenas números
           onChange={handlePhoneChange}
-          className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-[#003F25]"
+          className="flex-grow px-3 py-2 border border-gray-300 rounded-md sm:rounded-l-md sm:rounded-r-none focus:outline-none focus:ring-2 focus:ring-[#003F25]"
           maxLength={16} // Máximo para formato "(11) 9 9999-9999"
         />
         <button
           onClick={handleSearch}
-          disabled={loading}
-          className="bg-[#003F25] text-white px-4 py-2 rounded-r-md hover:bg-[#002918] transition duration-200 flex items-center"
+          disabled={loading || !isPhoneValid(searchPhone)} // NOVO: Validação do telefone
+          className="bg-[#003F25] text-white px-4 py-2 rounded-md sm:rounded-l-none sm:rounded-r-md hover:bg-[#002918] transition duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed min-w-0 sm:min-w-fit"
         >
           {loading ? (
             <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -98,10 +105,11 @@ const SearchTab: React.FC<SearchTabProps> = ({
             </svg>
           ) : (
             <>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              Buscar
+              <span className="hidden sm:inline ml-1">Buscar</span>
+              <span className="sm:hidden">Buscar</span>
             </>
           )}
         </button>
