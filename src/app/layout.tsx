@@ -45,11 +45,11 @@ export const metadata = {
   openGraph: {
     title: 'EcoGanha - São João de Caruaru',
     description: 'Transforme lixo em luxo com nossos eco-descontos no São João de Caruaru',
-    url: 'https://eco-ganha2025.vercel.app/',
+    url: 'https://www.ecoganha.com.br',
     siteName: 'EcoGanha',
     images: [
       {
-        url: '/icons/icon-192x192.png', 
+        url: 'https://www.ecoganha.com.br/icons/icon-512x512.png', 
         width: 1200,
         height: 630,
         alt: 'EcoGanha - São João de Caruaru',
@@ -64,7 +64,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'EcoGanha - São João de Caruaru',
     description: 'Transforme lixo em luxo com nossos eco-descontos no São João de Caruaru',
-    images: ['/icons/icon-192x192.png'],
+    images: ['https://www.ecoganha.com.br/icons/icon-512x512.png'],
   },
 
   // Substitua appleWebApp por outras tags
