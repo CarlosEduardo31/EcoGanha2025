@@ -69,13 +69,7 @@ export function Header() {
                 <Link href="/" className="block text-[#003F25] font-medium">
                   Início
                 </Link>
-              </li>
-              <li className="p-2 hover:bg-gray-100 rounded-md">
-                <Link href="/telaPremios" className="block text-[#003F25] font-medium">
-                  Prêmios
-                </Link>
-              </li>
-              {!user && (
+              </li>{!user && (
                 <li className="p-2 hover:bg-gray-100 rounded-md">
                   <Link href="/login" className="block text-[#003F25] font-medium">
                     Login

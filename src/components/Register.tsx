@@ -10,6 +10,7 @@ interface FormData {
   // Dados pessoais
   nome: string;
   telefone: string;
+  idade: string; // ← NOVO CAMPO
   senha: string;
   confirmSenha: string;
   
@@ -21,7 +22,7 @@ interface FormData {
   cidade: string;
   estado: string;
   cep: string;
-  referencia: string;
+  // REMOVIDO: referencia
 }
 
 export function Register() {
@@ -31,10 +32,15 @@ export function Register() {
   const [success, setSuccess] = useState('');
   const [currentStep, setCurrentStep] = useState(1);
   
+  // NOVOS ESTADOS para LGPD
+  const [consentGiven, setConsentGiven] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  
   // Estado do formulário
   const [formData, setFormData] = useState<FormData>({
     nome: '',
     telefone: '',
+    idade: '', // ← NOVO CAMPO
     senha: '',
     confirmSenha: '',
     logradouro: '',
@@ -43,8 +49,8 @@ export function Register() {
     bairro: '',
     cidade: '',
     estado: '',
-    cep: '',
-    referencia: ''
+    cep: ''
+    // REMOVIDO: referencia
   });
 
   // Estados brasileiros
@@ -64,10 +70,8 @@ export function Register() {
 
   // Formatar telefone
   const formatPhone = (value: string) => {
-    // Remove caracteres não numéricos
     const numericValue = value.replace(/\D/g, '');
     
-    // Formata o telefone
     if (numericValue.length <= 2) {
       return numericValue;
     } else if (numericValue.length <= 6) {
@@ -81,7 +85,6 @@ export function Register() {
 
   // Formatar CEP
   const formatCEP = (value: string) => {
-    // Remove caracteres não numéricos
     const numericValue = value.replace(/\D/g, '');
     
     if (numericValue.length <= 5) {
@@ -113,7 +116,6 @@ export function Register() {
   const fetchAddressByCEP = async () => {
     if (formData.cep.length < 8) return;
     
-    // Remove caracteres não numéricos
     const cepNumerico = formData.cep.replace(/\D/g, '');
     
     if (cepNumerico.length !== 8) return;
@@ -142,7 +144,7 @@ export function Register() {
     }
   };
 
-  // Validar o primeiro passo (dados pessoais)
+  // Validar o primeiro passo (dados pessoais) - ATUALIZADO
   const validateStep1 = (): boolean => {
     if (!formData.nome.trim()) {
       setError('Nome é obrigatório');
@@ -151,6 +153,18 @@ export function Register() {
     
     if (!formData.telefone.trim() || formData.telefone.replace(/\D/g, '').length < 10) {
       setError('Telefone válido é obrigatório (com DDD)');
+      return false;
+    }
+    
+    // ← NOVA VALIDAÇÃO DE IDADE
+    if (!formData.idade.trim()) {
+      setError('Idade é obrigatória');
+      return false;
+    }
+    
+    const age = parseInt(formData.idade);
+    if (isNaN(age) || age < 13 || age > 120) {
+      setError('Idade deve ser entre 13 e 120 anos');
       return false;
     }
     
@@ -168,7 +182,7 @@ export function Register() {
     return true;
   };
 
-  // Validar o segundo passo (endereço)
+  // Validar o segundo passo (endereço) - ATUALIZADO
   const validateStep2 = (): boolean => {
     if (!formData.cep.trim() || formData.cep.replace(/\D/g, '').length !== 8) {
       setError('CEP válido é obrigatório');
@@ -200,6 +214,12 @@ export function Register() {
       return false;
     }
     
+    // ← NOVA VALIDAÇÃO DE CONSENTIMENTO
+    if (!consentGiven) {
+      setError('É necessário aceitar os termos de uso e política de privacidade');
+      return false;
+    }
+    
     setError('');
     return true;
   };
@@ -218,7 +238,7 @@ export function Register() {
     }
   };
 
-   // Enviar o formulário
+  // Enviar o formulário - ATUALIZADO
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
@@ -238,12 +258,14 @@ export function Register() {
     setSuccess('');
     
     try {
-      // Prepara os dados para enviar para a API
+      // ← DADOS ATUALIZADOS com idade e consentimento
       const userData = {
         name: formData.nome,
-        phone: formData.telefone.replace(/\D/g, ''), // Remove caracteres não numéricos
+        phone: formData.telefone.replace(/\D/g, ''),
         password: formData.senha,
-        userType: 'comum', // Por padrão, registra como usuário comum
+        userType: 'comum',
+        age: parseInt(formData.idade), // ← INCLUIR IDADE
+        consentGiven, // ← INCLUIR CONSENTIMENTO
         address: {
           street: formData.logradouro,
           number: formData.numero,
@@ -251,57 +273,49 @@ export function Register() {
           neighborhood: formData.bairro,
           city: formData.cidade,
           state: formData.estado,
-          zipCode: formData.cep.replace(/\D/g, ''),
-          reference: formData.referencia
+          zipCode: formData.cep.replace(/\D/g, '')
+          // REMOVIDO: reference
         }
       };
 
-       // 👈 Adicione mais debug aqui
-    console.log('Dados sendo enviados:', userData);
+      console.log('Dados sendo enviados:', userData);
       
-      // Chama o serviço de registro
-      // await authService.register(userData);
       const user = await authService.register(userData);
       
       setSuccess('Cadastro realizado com sucesso!');
-      
-      // Redirecionar para a página de login após 2 segundos
-      // router.push('/login');
 
       if (user) {
-      // Redirecionar baseado no tipo de usuário
-      if (user.userType === 'comum') {
-        window.location.href = '/dashboard/comum';
-      } else if (user.userType === 'ecoponto') {
-        window.location.href = '/dashboard/ecoponto';
-      } else if (user.userType === 'patrocinador') {
-        window.location.href = '/dashboard/patrocinador';
-      } else {
-        window.location.href = '/dashboard';
+        if (user.userType === 'comum') {
+          window.location.href = '/dashboard/comum';
+        } else if (user.userType === 'ecoponto') {
+          window.location.href = '/dashboard/ecoponto';
+        } else if (user.userType === 'patrocinador') {
+          window.location.href = '/dashboard/patrocinador';
+        } else {
+          window.location.href = '/dashboard';
+        }
       }
-    }
     
-  } catch (error: any) {
-    console.error('Erro completo no cadastro:', error); // 👈 Log completo
-     console.error('Response data:', error.response?.data); // 👈 Ver a resposta exata
-  console.error('Response status:', error.response?.status);
-    
-    // 👈 Melhor tratamento de erro
-    if (error.response?.data?.message) {
-      setError(error.response.data.message);
-    } else if (error.response?.status === 400) {
-      setError('Dados inválidos. Verifique as informações e tente novamente.');
-    } else if (error.response?.status === 409) {
-      setError('Este telefone já está cadastrado.');
-    } else if (error.request) {
-      setError('Servidor indisponível. Tente novamente mais tarde.');
-    } else {
-      setError('Erro ao processar sua solicitação.');
+    } catch (error: any) {
+      console.error('Erro completo no cadastro:', error);
+      console.error('Response data:', error.response?.data);
+      console.error('Response status:', error.response?.status);
+      
+      if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else if (error.response?.status === 400) {
+        setError('Dados inválidos. Verifique as informações e tente novamente.');
+      } else if (error.response?.status === 409) {
+        setError('Este telefone já está cadastrado.');
+      } else if (error.request) {
+        setError('Servidor indisponível. Tente novamente mais tarde.');
+      } else {
+        setError('Erro ao processar sua solicitação.');
+      }
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-white">
@@ -340,7 +354,7 @@ export function Register() {
           </div>
           <div className="flex justify-between px-1 text-xs text-gray-600 mb-2">
             <span>Dados Pessoais</span>
-            <span>Endereço</span>
+            <span>Endereço e Termos</span>
           </div>
         </div>
         
@@ -357,7 +371,7 @@ export function Register() {
             </div>
           )}
           
-          {/* Passo 1: Dados Pessoais */}
+          {/* Passo 1: Dados Pessoais - ATUALIZADO */}
           {currentStep === 1 && (
             <>
               <div>
@@ -392,6 +406,26 @@ export function Register() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#003F25]"
                   required
                 />
+              </div>
+
+              {/* ← NOVO CAMPO DE IDADE */}
+              <div>
+                <label htmlFor="idade" className="block text-sm font-medium text-gray-700 mb-1">
+                  Idade
+                </label>
+                <input
+                  id="idade"
+                  name="idade"
+                  type="number"
+                  min="13"
+                  max="120"
+                  placeholder="Ex: 25"
+                  value={formData.idade}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#003F25]"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">Idade mínima: 13 anos</p>
               </div>
               
               <div>
@@ -431,7 +465,7 @@ export function Register() {
             </>
           )}
           
-          {/* Passo 2: Endereço */}
+          {/* Passo 2: Endereço e Termos - ATUALIZADO */}
           {currentStep === 2 && (
             <>
               <div>
@@ -566,20 +600,59 @@ export function Register() {
                   </select>
                 </div>
               </div>
-              
-              <div>
-                <label htmlFor="referencia" className="block text-sm font-medium text-gray-700 mb-1">
-                  Ponto de Referência
-                </label>
-                <textarea
-                  id="referencia"
-                  name="referencia"
-                  placeholder="Algum ponto de referência próximo (opcional)"
-                  value={formData.referencia}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#003F25] h-20"
-                />
+
+              {/* ← NOVO: Termo de Consentimento LGPD */}
+              <div className="border-t pt-4">
+                <div className="bg-gray-50 p-4 rounded-md">
+                  <div className="flex items-start">
+                    <button
+                      type="button"
+                      onClick={() => setShowTerms(!showTerms)}
+                      className="text-[#003F25] hover:text-[#002918] font-medium text-sm flex items-center"
+                    >
+                      {showTerms ? '▼' : '▶'} Termo de Consentimento para Tratamento de Dados Pessoais
+                    </button>
+                  </div>
+                  
+                  {showTerms && (
+                    <div className="mt-3 text-sm text-gray-700 bg-white p-3 rounded border max-h-40 overflow-y-auto">
+                      <p className="mb-3">
+                        Ao preencher este formulário, você autoriza a EcoGanha a coletar e tratar seus dados pessoais, 
+                        incluindo nome, endereço, telefone e idade, exclusivamente para fins de cadastro na plataforma, 
+                        contato, análise de dados e demais finalidades relacionadas aos serviços oferecidos.
+                      </p>
+                      
+                      <p className="mb-3 font-medium">Declaro estar ciente de que:</p>
+                      <ul className="list-disc list-inside space-y-1 mb-3">
+                        <li>Meus dados serão utilizados somente para os fins aqui descritos;</li>
+                        <li>
+                          Posso, a qualquer momento, solicitar a retirada do meu consentimento ou a exclusão dos meus dados, 
+                          conforme previsto na Lei nº 13.709/2018 (Lei Geral de Proteção de Dados – LGPD);
+                        </li>
+                        <li>
+                          Meus dados não serão compartilhados com terceiros sem meu consentimento prévio, 
+                          salvo em casos de exigência legal.
+                        </li>
+                      </ul>
+                    </div>
+                  )}
+                  
+                  <label className="flex items-start mt-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={consentGiven}
+                      onChange={(e) => setConsentGiven(e.target.checked)}
+                      className="w-4 h-4 text-[#003F25] bg-gray-100 border-gray-300 rounded focus:ring-[#003F25] focus:ring-2 mr-3 mt-0.5 flex-shrink-0"
+                      required
+                    />
+                    <span className="text-sm text-gray-700">
+                      Li e concordo com os Termos de Uso e a Política de Privacidade. *
+                    </span>
+                  </label>
+                </div>
               </div>
+
+              {/* REMOVIDO: Campo de referência */}
             </>
           )}
           
@@ -594,7 +667,7 @@ export function Register() {
                 Voltar
               </button>
             ) : (
-              <div></div> // espaço vazio para manter o layout
+              <div></div>
             )}
             
             <button

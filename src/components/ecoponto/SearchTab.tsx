@@ -46,9 +46,47 @@ const SearchTab: React.FC<SearchTabProps> = ({
   calculatePoints
 }) => {
   
+  // Função para formatar o telefone
+  const formatPhone = (value: string) => {
+    // Remove todos os caracteres não numéricos
+    const numbers = value.replace(/\D/g, '');
+    
+    // Limita a 11 dígitos (celular) ou 10 dígitos (fixo)
+    const limitedNumbers = numbers.slice(0, 11);
+    
+    // Aplica a formatação baseada no número de dígitos
+    if (limitedNumbers.length <= 2) {
+      return limitedNumbers;
+    } else if (limitedNumbers.length <= 6) {
+      return `(${limitedNumbers.slice(0, 2)}) ${limitedNumbers.slice(2)}`;
+    } else if (limitedNumbers.length <= 10) {
+      return `(${limitedNumbers.slice(0, 2)}) ${limitedNumbers.slice(2, 6)}-${limitedNumbers.slice(6)}`;
+    } else {
+      // Para celular com 9 dígitos (formato: (11) 9 9999-9999)
+      return `(${limitedNumbers.slice(0, 2)}) ${limitedNumbers.slice(2, 3)} ${limitedNumbers.slice(3, 7)}-${limitedNumbers.slice(7)}`;
+    }
+  };
+
+  // Função para verificar se o telefone está válido
+  const isPhoneValid = (phone: string) => {
+    const numbers = phone.replace(/\D/g, '');
+    return numbers.length === 10 || numbers.length === 11;
+  };
+
+  // Função para extrair apenas os números do telefone
+  const getPhoneNumbers = (phone: string) => {
+    return phone.replace(/\D/g, '');
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhone(e.target.value);
+    setSearchPhone(formatted);
+  };
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSearchUser(searchPhone);
+    // Passa apenas os números para a função de busca
+    await onSearchUser(getPhoneNumbers(searchPhone));
   };
 
   return (
@@ -60,15 +98,16 @@ const SearchTab: React.FC<SearchTabProps> = ({
           <div className="flex mb-4">
             <input
               type="tel"
-              placeholder="Número de telefone"
+              placeholder="(11) 99999-9999"
               value={searchPhone}
-              onChange={(e) => setSearchPhone(e.target.value)}
+              onChange={handlePhoneChange}
               className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-[#003F25]"
+              maxLength={16} // Máximo para formato "(11) 9 9999-9999"
             />
             <button
               type="submit"
-              disabled={loading}
-              className="bg-[#003F25] text-white px-4 py-2 rounded-r-md hover:bg-[#002918] transition duration-200 flex items-center"
+              disabled={loading || !isPhoneValid(searchPhone)}
+              className="bg-[#003F25] text-white px-4 py-2 rounded-r-md hover:bg-[#002918] transition duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -99,35 +138,6 @@ const SearchTab: React.FC<SearchTabProps> = ({
           </div>
         )}
 
-        {/* Usuários recentes */}
-        {recentUsers.length > 0 && !foundUser && (
-          <div className="mt-4">
-            <h3 className="text-gray-600 font-medium text-sm mb-2">Usuários recentes:</h3>
-            <div className="space-y-2">
-              {recentUsers.map(recentUser => (
-                <div 
-                  key={recentUser.id}
-                  className="flex items-center justify-between p-2 bg-gray-50 rounded-md border border-gray-200 cursor-pointer hover:bg-gray-100"
-                  onClick={() => onSelectRecentUser(recentUser)}
-                >
-                  <div className="flex items-center">
-                    <div className="bg-[#FBCA27] p-2 rounded-full mr-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-[#003F25]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-medium">{recentUser.name}</p>
-                      <p className="text-sm text-gray-500">{recentUser.phone}</p>
-                    </div>
-                  </div>
-                  <span className="text-[#003F25] font-medium">{recentUser.points} pontos</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {foundUser && (
           <div className="border border-gray-200 rounded-md p-4 mb-4 mt-4 bg-gray-50">
             <div className="flex items-center mb-4">
@@ -138,7 +148,7 @@ const SearchTab: React.FC<SearchTabProps> = ({
               </div>
               <div>
                 <p className="font-medium">{foundUser.name}</p>
-                <p className="text-sm text-gray-500">{foundUser.phone}</p>
+                <p className="text-sm text-gray-500">{formatPhone(foundUser.phone)}</p>
               </div>
               <div className="ml-auto">
                 <p className="font-medium text-[#003F25]">{foundUser.points} pontos</p>

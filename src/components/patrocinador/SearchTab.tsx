@@ -30,6 +30,42 @@ const SearchTab: React.FC<SearchTabProps> = ({
   onSearch,
   onRedeemPoints
 }) => {
+  // Função para formatar o telefone
+  const formatPhone = (value: string) => {
+    // Remove todos os caracteres não numéricos
+    const numbers = value.replace(/\D/g, '');
+    
+    // Limita a 11 dígitos (celular) ou 10 dígitos (fixo)
+    const limitedNumbers = numbers.slice(0, 11);
+    
+    // Aplica a formatação baseada no número de dígitos
+    if (limitedNumbers.length <= 2) {
+      return limitedNumbers;
+    } else if (limitedNumbers.length <= 6) {
+      return `(${limitedNumbers.slice(0, 2)}) ${limitedNumbers.slice(2)}`;
+    } else if (limitedNumbers.length <= 10) {
+      return `(${limitedNumbers.slice(0, 2)}) ${limitedNumbers.slice(2, 6)}-${limitedNumbers.slice(6)}`;
+    } else {
+      // Para celular com 9 dígitos (formato: (11) 9 9999-9999)
+      return `(${limitedNumbers.slice(0, 2)}) ${limitedNumbers.slice(2, 3)} ${limitedNumbers.slice(3, 7)}-${limitedNumbers.slice(7)}`;
+    }
+  };
+
+  // Função para extrair apenas os números do telefone
+  const getPhoneNumbers = (phone: string) => {
+    return phone.replace(/\D/g, '');
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const numbers = e.target.value.replace(/\D/g, '');
+    const limitedNumbers = numbers.slice(0, 11);
+    setSearchPhone(limitedNumbers); // Salva apenas os números
+  };
+
+  const handleSearch = async () => {
+    await onSearch();
+  };
+
   // Filtrar apenas ofertas disponíveis (quantity > 0)
   const availableOffers = offers.filter(offer => offer.quantity > 0);
   
@@ -44,13 +80,14 @@ const SearchTab: React.FC<SearchTabProps> = ({
       <div className="flex mb-4">
         <input
           type="tel"
-          placeholder="Número de telefone"
-          value={searchPhone}
-          onChange={(e) => setSearchPhone(e.target.value)}
+          placeholder="(11) 99999-9999"
+          value={formatPhone(searchPhone)} // Mostra formatado mas salva apenas números
+          onChange={handlePhoneChange}
           className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-[#003F25]"
+          maxLength={16} // Máximo para formato "(11) 9 9999-9999"
         />
         <button
-          onClick={onSearch}
+          onClick={handleSearch}
           disabled={loading}
           className="bg-[#003F25] text-white px-4 py-2 rounded-r-md hover:bg-[#002918] transition duration-200 flex items-center"
         >
@@ -92,7 +129,7 @@ const SearchTab: React.FC<SearchTabProps> = ({
             </div>
             <div>
               <p className="font-medium">{foundUser.name}</p>
-              <p className="text-sm text-gray-500">{foundUser.phone}</p>
+              <p className="text-sm text-gray-500">{formatPhone(foundUser.phone)}</p>
             </div>
             <div className="ml-auto">
               <p className="font-medium text-[#003F25]">{foundUser.points} pontos</p>

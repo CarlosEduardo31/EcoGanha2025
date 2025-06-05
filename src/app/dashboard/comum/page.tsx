@@ -1,9 +1,9 @@
-// src/app/dashboard/comum/page.tsx
+// src/app/dashboard/comum/page.tsx - CORRIGIDO
 
 "use client"
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, User } from '@/contexts/AuthContext';
 import { 
   UserTabType, 
   EcoPoint, 
@@ -22,10 +22,11 @@ import EcoPointsTab from '@/components/usuario/EcoPointsTab';
 import ProfileTab from '@/components/usuario/ProfileTab';
 import ActivitiesTab from '@/components/usuario/ActivitiesTab';
 import RedemptionsTab from '@/components/usuario/RedemptionsTab';
+import EditProfileTab from '@/components/usuario/EditProfileTab';
 import BottomNavigation from '@/components/layout/BottomNavigationComun';
 
 export default function UsuarioComumPage() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, updateUserData, isLoading } = useAuth(); // ← ADICIONAR isLoading
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<UserTabType>('home');
   const [selectedPartner, setSelectedPartner] = useState<SelectedPartner | null>(null);
@@ -37,20 +38,35 @@ export default function UsuarioComumPage() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [ecoPoints, setEcoPoints] = useState<EcoPoint[]>([]);
 
-  // Verificar autenticação
+  // ← CORREÇÃO PRINCIPAL: Aguardar loading do AuthContext terminar
+  // Verificar autenticação APENAS quando não estiver carregando
   useEffect(() => {
+    // Se ainda está carregando, não fazer nada
+    if (isLoading) return;
+    
+    // Se terminou de carregar e não está autenticado, redirecionar
     if (!isAuthenticated) {
+      console.log('Usuário não autenticado, redirecionando para login...');
       router.push('/login');
-    } else if (user?.userType !== 'comum') {
-      router.push(`/dashboard/${user?.userType}`);
+      return;
     }
-  }, [isAuthenticated, user, router]);
+    
+    // Se está autenticado mas não é usuário comum, redirecionar
+    if (user?.userType !== 'comum') {
+      console.log(`Usuário tipo ${user?.userType}, redirecionando...`);
+      router.push(`/dashboard/${user?.userType}`);
+      return;
+    }
+    
+    console.log('Usuário autenticado e é do tipo comum, continuando...');
+  }, [isAuthenticated, user, router, isLoading]); // ← ADICIONAR isLoading na dependência
 
   // Carregar dados iniciais
   useEffect(() => {
+    // ← AGUARDAR autenticação estar completa antes de carregar dados
+    if (isLoading || !isAuthenticated || user?.userType !== 'comum') return;
+    
     const loadInitialData = async () => {
-      if (!isAuthenticated || user?.userType !== 'comum') return;
-      
       setLoading(true);
       try {
         console.log('Carregando dados do usuário comum...');
@@ -103,7 +119,7 @@ export default function UsuarioComumPage() {
     };
 
     loadInitialData();
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, isLoading]); // ← ADICIONAR isLoading na dependência
 
    // Handler para mudança de aba
   const handleTabChange = (tab: UserTabType) => {
@@ -113,12 +129,35 @@ export default function UsuarioComumPage() {
     }
   };
 
-  // Estado de carregamento
+  // Handler para atualização de perfil
+  const handleProfileUpdate = (updatedData: Partial<User>) => {
+    if (updateUserData && user) {
+      updateUserData(updatedData);
+    }
+  };
+
+  // ← MOSTRAR LOADING ENQUANTO AuthContext está verificando autenticação
+  if (isLoading) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-gray-50">
+        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#003F25] mb-4 mx-auto"></div>
+          <p className="text-gray-600 font-medium">Verificando autenticação...</p>
+          <p className="text-gray-500 text-sm mt-2">Aguarde um momento</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Estado de carregamento dos dados
   if (!user || loading) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#003F25] mb-4"></div>
-        <p className="text-gray-600">Carregando seus dados...</p>
+      <div className="flex flex-col justify-center items-center h-screen bg-gray-50">
+        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#003F25] mb-4 mx-auto"></div>
+          <p className="text-gray-600 font-medium">Carregando seus dados...</p>
+          <p className="text-gray-500 text-sm mt-2">Aguarde um momento</p>
+        </div>
       </div>
     );
   }
@@ -172,6 +211,14 @@ export default function UsuarioComumPage() {
             onTabChange={handleTabChange} 
           />
         );
+      case 'editProfile':
+        return (
+          <EditProfileTab 
+            user={user} 
+            onTabChange={handleTabChange} 
+            onProfileUpdate={handleProfileUpdate}
+          />
+        );
       default:
         return (
           <HomeTab 
@@ -190,8 +237,10 @@ export default function UsuarioComumPage() {
       {/* Conteúdo principal baseado na aba ativa */}
       {renderContent()}
 
-      {/* Navegação inferior */}
-      <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+      {/* Navegação inferior - esconder apenas quando editando perfil */}
+      {activeTab !== 'editProfile' && (
+        <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+      )}
     </div>
   );
 }

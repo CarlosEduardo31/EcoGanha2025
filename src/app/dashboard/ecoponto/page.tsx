@@ -1,4 +1,5 @@
-// Atualização do componente Dashboard do EcoPonto para produção
+// src/app/dashboard/ecoponto/page.tsx - CORRIGIDO
+
 "use client"
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -18,7 +19,7 @@ import ProfileTab from '@/components/ecoponto/ProfileTab';
 import BottomNavigation from '@/components/ecoponto/BottomNavigation';
 
 export default function EcoPontoDashboardPage() {
-  const { user, isAuthenticated, findUserByPhone, addPoints, logout } = useAuth();
+  const { user, isAuthenticated, findUserByPhone, addPoints, logout, isLoading } = useAuth(); // ← ADICIONAR isLoading
   const [searchPhone, setSearchPhone] = useState('');
   const [foundUser, setFoundUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -41,17 +42,34 @@ export default function EcoPontoDashboardPage() {
   });
   const router = useRouter();
 
-  // Verificar autenticação
+  // ← CORREÇÃO PRINCIPAL: Aguardar loading do AuthContext terminar
+  // Verificar autenticação APENAS quando não estiver carregando
   useEffect(() => {
+    // Se ainda está carregando, não fazer nada
+    if (isLoading) return;
+    
+    // Se terminou de carregar e não está autenticado, redirecionar
     if (!isAuthenticated) {
+      console.log('Usuário não autenticado, redirecionando para login...');
       router.push('/login');
-    } else if (user?.userType !== 'ecoponto') {
-      router.push(`/dashboard/${user?.userType}`);
+      return;
     }
-  }, [isAuthenticated, user, router]);
+    
+    // Se está autenticado mas não é operador de ecoponto, redirecionar
+    if (user?.userType !== 'ecoponto') {
+      console.log(`Usuário tipo ${user?.userType}, redirecionando...`);
+      router.push(`/dashboard/${user?.userType}`);
+      return;
+    }
+    
+    console.log('Usuário autenticado e é operador de ecoponto, continuando...');
+  }, [isAuthenticated, user, router, isLoading]); // ← ADICIONAR isLoading na dependência
 
   // Buscar o ecoPointId associado ao operador
   useEffect(() => {
+    // ← AGUARDAR autenticação estar completa
+    if (isLoading || !isAuthenticated || user?.userType !== 'ecoponto') return;
+    
     const fetchEcoPointId = async () => {
       try {
         const ecoPoint = await operatorService.getOperatorEcoPoint();
@@ -66,91 +84,88 @@ export default function EcoPontoDashboardPage() {
       }
     };
 
-    if (isAuthenticated && user?.userType === 'ecoponto') {
-      fetchEcoPointId();
-    }
-  }, [isAuthenticated, user]);
+    fetchEcoPointId();
+  }, [isAuthenticated, user, isLoading]); // ← ADICIONAR isLoading na dependência
 
   // Carregar dados iniciais (após ter o ecoPointId)
   useEffect(() => {
-  const loadInitialData = async () => {
-    if (!ecoPointId) return; // Espera até que o ecoPointId esteja disponível
+    // ← AGUARDAR autenticação estar completa
+    if (isLoading || !isAuthenticated || user?.userType !== 'ecoponto' || !ecoPointId) return;
     
-    setLoading(true);
-    try {
-      console.log(`Carregando dados para o EcoPonto ID: ${ecoPointId}`);
-      
-      // Carregar materiais
-      const materialsData = await materialService.listAll();
-      setMaterials(materialsData);
-      console.log(`${materialsData.length} materiais carregados`);
+    const loadInitialData = async () => {
+      setLoading(true);
+      try {
+        console.log(`Carregando dados para o EcoPonto ID: ${ecoPointId}`);
+        
+        // Carregar materiais
+        const materialsData = await materialService.listAll();
+        setMaterials(materialsData);
+        console.log(`${materialsData.length} materiais carregados`);
 
-      // Carregar transações recentes
-      const transactionsData = await transactionService.listByEcoPoint(ecoPointId);
-      setTransactions(transactionsData);
-      console.log(`${transactionsData.length} transações carregadas`);
+        // Carregar transações recentes
+        const transactionsData = await transactionService.listByEcoPoint(ecoPointId);
+        setTransactions(transactionsData);
+        console.log(`${transactionsData.length} transações carregadas`);
 
-      // Carregar estatísticas
-      const statsData = await ecoPointService.getStats(ecoPointId);
-      setStatsData(statsData);
-      
-      // Extrair usuários recentes das transações
-      const userIds = Array.from(new Set(transactionsData.map((t: any) => t.userId)));
-      const uniqueUsers: UserData[] = [];
-      
-      // Para cada ID de usuário, buscar os dados completos
-      for (const userId of userIds) {
-        try {
-          // Buscar dados completos do usuário para ter os pontos atuais
-          const userResponse = await userService.getById(String(userId));
-          uniqueUsers.push({
-            id: userResponse.id,
-            name: userResponse.name,
-            phone: userResponse.phone,
-            userType: userResponse.userType,
-            points: userResponse.points
-          });
-        } catch (userError) {
-          // Fallback: usar dados da transação
-          const transaction = transactionsData.find((t: any) => t.userId === userId);
-          if (transaction) {
-            // Buscar o usuário pelo telefone para ter pontos atualizados
-            try {
-              const user = await userService.findByPhone(transaction.userPhone);
-              uniqueUsers.push({
-                id: transaction.userId,
-                name: transaction.userName,
-                phone: transaction.userPhone,
-                userType: 'comum',
-                points: user?.points || 0
-              });
-            } catch (phoneError) {
-              // Último fallback: usar apenas os dados da transação
-              uniqueUsers.push({
-                id: transaction.userId,
-                name: transaction.userName,
-                phone: transaction.userPhone,
-                userType: 'comum',
-                points: 0 // Valor padrão, mas pelo menos temos os dados básicos
-              });
+        // Carregar estatísticas
+        const statsData = await ecoPointService.getStats(ecoPointId);
+        setStatsData(statsData);
+        
+        // Extrair usuários recentes das transações
+        const userIds = Array.from(new Set(transactionsData.map((t: any) => t.userId)));
+        const uniqueUsers: UserData[] = [];
+        
+        // Para cada ID de usuário, buscar os dados completos
+        for (const userId of userIds) {
+          try {
+            // Buscar dados completos do usuário para ter os pontos atuais
+            const userResponse = await userService.getById(String(userId));
+            uniqueUsers.push({
+              id: userResponse.id,
+              name: userResponse.name,
+              phone: userResponse.phone,
+              userType: userResponse.userType,
+              points: userResponse.points
+            });
+          } catch (userError) {
+            // Fallback: usar dados da transação
+            const transaction = transactionsData.find((t: any) => t.userId === userId);
+            if (transaction) {
+              // Buscar o usuário pelo telefone para ter pontos atualizados
+              try {
+                const user = await userService.findByPhone(transaction.userPhone);
+                uniqueUsers.push({
+                  id: transaction.userId,
+                  name: transaction.userName,
+                  phone: transaction.userPhone,
+                  userType: 'comum',
+                  points: user?.points || 0
+                });
+              } catch (phoneError) {
+                // Último fallback: usar apenas os dados da transação
+                uniqueUsers.push({
+                  id: transaction.userId,
+                  name: transaction.userName,
+                  phone: transaction.userPhone,
+                  userType: 'comum',
+                  points: 0 // Valor padrão, mas pelo menos temos os dados básicos
+                });
+              }
             }
           }
         }
+        
+        setRecentUsers(uniqueUsers.slice(0, 5));
+        console.log(`${uniqueUsers.length} usuários recentes encontrados`);
+      } catch (error) {
+        console.error('Erro ao carregar dados iniciais:', error);
+      } finally {
+        setLoading(false);
       }
-      
-      setRecentUsers(uniqueUsers.slice(0, 5));
-      console.log(`${uniqueUsers.length} usuários recentes encontrados`);
-    } catch (error) {
-      console.error('Erro ao carregar dados iniciais:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  if (isAuthenticated && user?.userType === 'ecoponto' && ecoPointId) {
     loadInitialData();
-  }
-}, [isAuthenticated, user, ecoPointId]);
+  }, [isAuthenticated, user, ecoPointId, isLoading]); // ← ADICIONAR isLoading na dependência
 
   // Buscar usuário pelo telefone
   const handleSearch = async (phone: string) => {
@@ -192,90 +207,75 @@ export default function EcoPontoDashboardPage() {
   };
 
   // Calcular pontos com base no material e peso
-  // const calculatePoints = (): number => {
-  //   if (!selectedMaterial || !weight) return 0;
-    
-  //   const material = materials.find(m => m.id === selectedMaterial);
-  //   if (!material) return 0;
-    
-  //   const weightNum = parseFloat(weight);
-  //   if (isNaN(weightNum)) return 0;
-    
-  //   return Math.round(material.pointsPerKg * weightNum);
-  // };
-
-  // Função de cálculo de pontos melhorada para o EcoPontoDashboardPage
-
-// Calcular pontos com base no material e peso
-const calculatePoints = (): number => {
-  try {
-    // Verificações iniciais
-    if (!selectedMaterial) {
-      console.log('Material não selecionado');
+  const calculatePoints = (): number => {
+    try {
+      // Verificações iniciais
+      if (!selectedMaterial) {
+        console.log('Material não selecionado');
+        return 0;
+      }
+      
+      if (!weight || weight === '') {
+        console.log('Peso não informado');
+        return 0;
+      }
+      
+      // Verificar se temos materiais carregados
+      if (!materials || materials.length === 0) {
+        console.log('Lista de materiais vazia');
+        return 0;
+      }
+      
+      // Log para debug
+      console.log('Material selecionado ID:', selectedMaterial);
+      console.log('Peso informado:', weight);
+      console.log('Materiais disponíveis:', materials.map(m => `${m.id}: ${m.name} (${m.pointsPerKg})`));
+      
+      // Encontrar o material na lista
+      const material = materials.find(m => String(m.id) === String(selectedMaterial));
+      
+      if (!material) {
+        console.log(`Material com ID ${selectedMaterial} não encontrado na lista`);
+        return 0;
+      }
+      
+      console.log('Material encontrado:', material);
+      
+      // Converter peso para número
+      const weightNum = parseFloat(weight.replace(',', '.'));
+      
+      if (isNaN(weightNum)) {
+        console.log(`Peso inválido: ${weight}`);
+        return 0;
+      }
+      
+      console.log('Peso convertido:', weightNum);
+      
+      // Verificar se pointsPerKg existe e é um número
+      if (material.pointsPerKg === undefined || material.pointsPerKg === null) {
+        console.log('Material não tem pointsPerKg definido');
+        return 0;
+      }
+      
+      const pointsPerKg = parseFloat(String(material.pointsPerKg));
+      
+      if (isNaN(pointsPerKg)) {
+        console.log(`pointsPerKg inválido: ${material.pointsPerKg}`);
+        return 0;
+      }
+      
+      console.log('Pontos por kg:', pointsPerKg);
+      
+      // Calcular pontos
+      const calculatedPoints = Math.round(pointsPerKg * weightNum);
+      console.log('Pontos calculados:', calculatedPoints);
+      
+      return calculatedPoints;
+    } catch (error) {
+      console.error('Erro ao calcular pontos:', error);
       return 0;
     }
-    
-    if (!weight || weight === '') {
-      console.log('Peso não informado');
-      return 0;
-    }
-    
-    // Verificar se temos materiais carregados
-    if (!materials || materials.length === 0) {
-      console.log('Lista de materiais vazia');
-      return 0;
-    }
-    
-    // Log para debug
-    console.log('Material selecionado ID:', selectedMaterial);
-    console.log('Peso informado:', weight);
-    console.log('Materiais disponíveis:', materials.map(m => `${m.id}: ${m.name} (${m.pointsPerKg})`));
-    
-    // Encontrar o material na lista
-    const material = materials.find(m => String(m.id) === String(selectedMaterial));
-    
-    if (!material) {
-      console.log(`Material com ID ${selectedMaterial} não encontrado na lista`);
-      return 0;
-    }
-    
-    console.log('Material encontrado:', material);
-    
-    // Converter peso para número
-    const weightNum = parseFloat(weight.replace(',', '.'));
-    
-    if (isNaN(weightNum)) {
-      console.log(`Peso inválido: ${weight}`);
-      return 0;
-    }
-    
-    console.log('Peso convertido:', weightNum);
-    
-    // Verificar se pointsPerKg existe e é um número
-    if (material.pointsPerKg === undefined || material.pointsPerKg === null) {
-      console.log('Material não tem pointsPerKg definido');
-      return 0;
-    }
-    
-    const pointsPerKg = parseFloat(String(material.pointsPerKg));
-    
-    if (isNaN(pointsPerKg)) {
-      console.log(`pointsPerKg inválido: ${material.pointsPerKg}`);
-      return 0;
-    }
-    
-    console.log('Pontos por kg:', pointsPerKg);
-    
-    // Calcular pontos
-    const calculatedPoints = Math.round(pointsPerKg * weightNum);
-    console.log('Pontos calculados:', calculatedPoints);
-    
-    return calculatedPoints;
-  } catch (error) {
-    console.error('Erro ao calcular pontos:', error);
-    return 0;
-  }
-};
+  };
 
   // Adicionar pontos ao usuário
   const handleAddPoints = async () => {
@@ -364,12 +364,28 @@ const calculatePoints = (): number => {
     setActiveTab(tab);
   };
 
-  // Estado de carregamento
+  // ← MOSTRAR LOADING ENQUANTO AuthContext está verificando autenticação
+  if (isLoading) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-gray-50">
+        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#003F25] mb-4 mx-auto"></div>
+          <p className="text-gray-600 font-medium">Verificando autenticação...</p>
+          <p className="text-gray-500 text-sm mt-2">Aguarde um momento</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Estado de carregamento dos dados
   if (!user || !ecoPointId) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#003F25] mb-4"></div>
-        <p className="text-gray-600">Carregando informações do Eco Ponto...</p>
+      <div className="flex flex-col justify-center items-center h-screen bg-gray-50">
+        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#003F25] mb-4 mx-auto"></div>
+          <p className="text-gray-600 font-medium">Carregando informações do Eco Ponto...</p>
+          <p className="text-gray-500 text-sm mt-2">Aguarde um momento</p>
+        </div>
       </div>
     );
   }

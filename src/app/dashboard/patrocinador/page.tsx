@@ -16,7 +16,7 @@ import ProfileTab from '@/components/patrocinador/ProfileTab';
 import BottomNavigation from '@/components/patrocinador/BottomNavigation';
 
 export default function PatrocinadorDashboardPage() {
-  const { user, isAuthenticated, logout, findUserByPhone, removePoints } = useAuth();
+  const { user, isAuthenticated, logout, findUserByPhone, removePoints, isLoading } = useAuth();
   const [searchPhone, setSearchPhone] = useState('');
   const [foundUser, setFoundUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -28,35 +28,53 @@ export default function PatrocinadorDashboardPage() {
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const router = useRouter();
 
-  // Verificar autenticação
+ // Verificar autenticação APENAS quando não estiver carregando
   useEffect(() => {
+    // Se ainda está carregando, não fazer nada
+    if (isLoading) return;
+    
+    // Se terminou de carregar e não está autenticado, redirecionar
     if (!isAuthenticated) {
+      console.log('Usuário não autenticado, redirecionando para login...');
       router.push('/login');
-    } else if (user?.userType !== 'patrocinador') {
-      router.push(`/dashboard/${user?.userType}`);
+      return;
     }
-  }, [isAuthenticated, user, router]);
+    
+    // Se está autenticado mas não é patrocinador, redirecionar
+    if (user?.userType !== 'patrocinador') {
+      console.log(`Usuário tipo ${user?.userType}, redirecionando...`);
+      router.push(`/dashboard/${user?.userType}`);
+      return;
+    }
+    
+    console.log('Usuário autenticado e é patrocinador, continuando...');
+  }, [isAuthenticated, user, router, isLoading]);
 
   // Carregar dados iniciais
-  useEffect(() => {
+ useEffect(() => {
+    // ← AGUARDAR autenticação estar completa antes de carregar dados
+    if (isLoading || !isAuthenticated || user?.userType !== 'patrocinador') return;
+    
     const loadInitialData = async () => {
       try {
+        console.log('Carregando dados do patrocinador...');
+
         // Carregar ofertas do parceiro
         const offersData = await offerService.listPartnerOffers();
         setOffers(offersData);
+        console.log(`${offersData.length} ofertas carregadas`);
 
         // Carregar histórico de resgates
         const redemptionsData = await redemptionService.getPartnerRedemptions();
         setRedemptions(redemptionsData);
+        console.log(`${redemptionsData.length} resgates carregados`);
       } catch (error) {
         console.error('Erro ao carregar dados iniciais:', error);
       }
     };
 
-    if (isAuthenticated && user?.userType === 'patrocinador') {
-      loadInitialData();
-    }
-  }, [isAuthenticated, user]);
+    loadInitialData();
+  }, [isAuthenticated, user, isLoading]);
 
   // Buscar usuário pelo telefone
   const handleSearch = async () => {

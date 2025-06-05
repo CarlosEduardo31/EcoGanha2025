@@ -11,13 +11,15 @@ interface LoginCredentials {
 }
 
 /**
- * Interface para os dados de registro
+ * Interface para os dados de registro - ATUALIZADA
  */
 interface RegisterData {
   name: string;
   phone: string;
   password: string;
   userType: string;
+  age?: number; // <- NOVO CAMPO
+  consentGiven?: boolean; // <- NOVO CAMPO
   address?: {
     street: string;
     number: string;
@@ -26,12 +28,12 @@ interface RegisterData {
     city: string;
     state: string;
     zipCode: string;
-    reference?: string;
+    // REMOVIDO: reference field
   };
 }
 
 /**
- * Interface para a resposta de usuário
+ * Interface para a resposta de usuário - ATUALIZADA
  */
 interface UserResponse {
   id: string;
@@ -39,6 +41,7 @@ interface UserResponse {
   phone: string;
   userType: string;
   points: number;
+  age?: number; // <- NOVO CAMPO
   token?: string;
 }
 
@@ -74,7 +77,7 @@ const authService = {
   },
 
   /**
-   * Registra um novo usuário
+   * Registra um novo usuário - ATUALIZADA para incluir age e consentGiven
    * @param userData - Dados do novo usuário
    * @returns Dados do usuário criado com token
    */
@@ -132,7 +135,7 @@ const authService = {
   },
 
   /**
-   * Verifica se o perfil do usuário logado
+   * Verifica se o perfil do usuário logado - ATUALIZADA para incluir age
    * @returns Dados do usuário
    */
   getCurrentUser: async (): Promise<UserResponse | null> => {

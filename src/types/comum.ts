@@ -1,8 +1,15 @@
-// src/types/comum.ts
+// src/types/comum.ts - VERSÃO COMPLETA ATUALIZADA
 
 // Tipos de dados para o dashboard do Usuário Comum
 
-export type UserTabType = 'home' | 'rewards' | 'map' | 'profile' | 'activities' | 'redemptions';
+export type UserTabType = 
+  | 'home' 
+  | 'rewards' 
+  | 'map' 
+  | 'profile' 
+  | 'activities' 
+  | 'redemptions' 
+  | 'editProfile'; // <- ADICIONADO
 
 export interface EcoPoint {
   id: string;
@@ -26,17 +33,14 @@ export interface Partner {
   offers: Offer[];
 }
 
-// Interface para ofertas - ATUALIZADA com quantity e image
 export interface Offer {
   id: string;
   title: string;
   description?: string;
   points: number;
-  quantity: number;        // <- CAMPO ADICIONADO
-  image?: string | null;   // <- NOVO CAMPO PARA IMAGEM BASE64
+  quantity?: number; // <- OPCIONAL: quantidade disponível
+  image?: string; // <- OPCIONAL: imagem da oferta
   validUntil?: string;
-  createdAt?: string;      // <- Campo opcional
-  updatedAt?: string;      // <- Campo opcional
 }
 
 export interface RecycleTransaction {
@@ -59,4 +63,37 @@ export interface RedemptionTransaction {
 
 export interface SelectedPartner extends Partner {
   location: string;
+}
+
+// <- NOVA: Interface para dados de perfil completo
+export interface UserProfile {
+  id: string;
+  name: string;
+  phone: string;
+  userType: string;
+  points: number;
+  age?: number;
+  address?: {
+    street: string;
+    number: string;
+    complement: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+}
+
+// <- NOVA: Interface para atualização de perfil
+export interface ProfileUpdateData {
+  name?: string;
+  address?: {
+    street?: string;
+    number?: string;
+    complement?: string;
+    neighborhood?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+  };
 }

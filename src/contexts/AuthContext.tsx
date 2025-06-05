@@ -17,6 +17,7 @@ export interface User {
   phone: string;
   userType: UserType;
   points: number;
+  age?: number; // ← ADICIONADO
 }
 
 interface AuthContextType {
@@ -25,6 +26,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (phone: string, password: string) => Promise<void>;
   logout: () => void;
+  updateUserData: (userData: Partial<User>) => void; // ← ADICIONADO
   findUserByPhone: (phone: string) => Promise<User | null>;
   addPoints: (userId: string, materialId: string, weight: number, ecoPointId: string) => Promise<void>;
   removePoints: (userId: string, offerId: string) => Promise<void>;
@@ -38,6 +40,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+
+  // ← ADICIONADO
+  // Função para atualizar dados parciais do usuário
+  const updateUserData = (userData: Partial<User>) => {
+    if (user) {
+      setUser({ ...user, ...userData });
+    }
+  };
 
   // Verificar se existe um usuário autenticado ao carregar a página
   useEffect(() => {
@@ -55,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               phone: currentUser.phone,
               userType: currentUser.userType as UserType,
               points: currentUser.points,
+              age: (currentUser as any).age, // ← ADICIONADO
             });
           } else {
             // Se não conseguiu buscar o usuário, limpar token
@@ -86,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         phone: loggedUser.phone,
         userType: loggedUser.userType as UserType,
         points: loggedUser.points,
+        age: (loggedUser as any).age, // ← ADICIONADO
       };
       
       // Salvar dados do usuário no estado
@@ -183,7 +195,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: !!user,
       isLoading,
       login, 
-      logout, 
+      logout,
+      updateUserData, // ← ADICIONADO
       findUserByPhone,
       addPoints,
       removePoints,
