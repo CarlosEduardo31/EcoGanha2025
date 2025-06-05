@@ -198,13 +198,13 @@ const HomeTab: React.FC<HomeTabProps> = ({
                           {/* Mostrar quantidade disponível */}
                           <div className="mb-3">
                             <span className={`text-xs px-2 py-1 rounded-full ${
-                              availableOffer.quantity > 10 
+                              (availableOffer.quantity || 0) > 10 
                                 ? 'bg-green-100 text-green-700'
-                                : availableOffer.quantity > 5
+                                : (availableOffer.quantity || 0) > 5
                                   ? 'bg-yellow-100 text-yellow-700' 
                                   : 'bg-orange-100 text-orange-700'
                             }`}>
-                              {availableOffer.quantity} disponíveis
+                              {availableOffer.quantity || 0} disponíveis
                             </span>
                           </div>
                           

@@ -38,7 +38,7 @@ export interface Offer {
   title: string;
   description?: string;
   points: number;
-  quantity?: number; // <- OPCIONAL: quantidade disponível
+  quantity: number; // <- OPCIONAL: quantidade disponível
   image?: string; // <- OPCIONAL: imagem da oferta
   validUntil?: string;
 }
