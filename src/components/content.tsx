@@ -5,13 +5,13 @@ export function Content() {
     <div className="flex mt-8 px-4 text-[#000] font-poppins justify-between items-center">
       {/* Texto à esquerda */}
       <div className="w-[60%]">
-        <h1 className="font-semibold text-lg sm:text-xl mb-2">
+        <h1 className="font-semibold text-lg sm:text-xl mb-2 pb-2">
           Recicle e Economize
         </h1>
         <p className="text-[#003f25] font-light text-sm sm:text-base leading-relaxed">
-          Descontos e Prêmios<br /><br />
-          Para tornar Caruaru mais sustentável e reduzir o impacto ambiental do São João, estamos introduzindo o programa <strong>“Recicle e Economize”</strong>.<br /><br />
-          Este programa oferece à população a oportunidade de ganhar descontos e outros prêmios ao reciclar materiais como plásticos, metais, vidros e papel.
+          Ganhe brindes<br /><br />
+          Para tornar Caruaru mais sustentável e reduzir o impacto ambiental do São João, estamos introduzindo o <strong>EcoGanha</strong>.<br /><br />
+          Este projeto oferece à população a oportunidade de ganhar brindes dos patrocinadores ao reciclar materiais como plásticos e alumínio.
         </p>
       </div>
 

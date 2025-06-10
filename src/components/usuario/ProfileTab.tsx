@@ -14,7 +14,7 @@ interface ProfileTabProps {
 const ProfileTab: React.FC<ProfileTabProps> = ({ user, onTabChange, onLogout }) => {
   // Função para abrir WhatsApp
   const openWhatsApp = () => {
-    const phoneNumber = "5581999999999"; // Substitua pelo número real do suporte
+    const phoneNumber = "5581999999999"; 
     const message = encodeURIComponent(
       `Olá! Sou ${user.name} e preciso de ajuda com minha conta EcoGanha. 
       
