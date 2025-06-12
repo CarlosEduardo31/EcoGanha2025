@@ -36,7 +36,7 @@ import './globals.css';
 
 export const metadata = {
   title: 'EcoGanha - São João de Caruaru',
-  description: 'Transforme lixo em luxo com nossos eco-descontos no São João de Caruaru',
+  description: 'EcoGanha - Transforme o amanha, reciclando Hoje.',
   manifest: '/manifest.json',
   themeColor: '#003F25',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
@@ -44,7 +44,7 @@ export const metadata = {
   // Open Graph para WhatsApp/Facebook
   openGraph: {
     title: 'EcoGanha - São João de Caruaru',
-    description: 'Transforme lixo em luxo com nossos eco-descontos no São João de Caruaru',
+    description: 'EcoGanha - Transforme o amanha, reciclando Hoje.',
     url: 'https://www.ecoganha.com.br',
     siteName: 'EcoGanha',
     images: [
@@ -63,7 +63,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'EcoGanha - São João de Caruaru',
-    description: 'Transforme lixo em luxo com nossos eco-descontos no São João de Caruaru',
+    description: 'EcoGanha - Transforme o amanha, reciclando Hoje.',
     images: ['https://www.ecoganha.com.br/icons/icon-512x512.png'],
   },
 

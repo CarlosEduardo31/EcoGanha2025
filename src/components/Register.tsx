@@ -425,7 +425,7 @@ export function Register() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#003F25]"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">Idade mínima: 13 anos</p>
+                {/* <p className="text-xs text-gray-500 mt-1">Idade mínima: 13 anos</p> */}
               </div>
               
               <div>

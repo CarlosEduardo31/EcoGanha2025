@@ -74,10 +74,10 @@ export function Carrossel() {
   };
 
   return (
-    <div className="w-full my-8 px-4">
-      <h1 className="text-center text-lg sm:text-xl font-semibold text-[#003F25] mb-6">
+    <div className="w-full my-8 px-4 py-12 bg-gray-50">
+      <h2 className="text-center text-2xl sm:text-3xl md:text-4xl font-bold text-[#003F25] mb-12">
         Benefícios da Iniciativa
-      </h1>
+      </h2>
 
       {/* Container principal do carrossel */}
       <div 

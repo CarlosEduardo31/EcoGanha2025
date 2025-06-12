@@ -1,10 +1,12 @@
-import { Cellphone } from "@/components/cellphone";
-import { Header } from "@/components/header";
-import { Cadastre } from "@/components/cadastre";
-import { Content } from "@/components/content";
-import { Carrossel } from "@/components/carrossel";
-import { Convite } from "@/components/convite";
-import { Footer } from "@/components/footer";
+import { Cellphone } from "@/components/landingpage/cellphone";
+import { Header } from "@/components/landingpage/header";
+import { Cadastre } from "@/components/landingpage/cadastre";
+import { Content } from "@/components/landingpage/content";
+import { Carrossel } from "@/components/landingpage/carrossel";
+import { Convite } from "@/components/landingpage/convite";
+import { Footer } from "@/components/landingpage/footer";
+import { HowItWorks } from "@/components/landingpage/how-it-works";
+import { Partners } from "@/components/landingpage/partners";
 import "@fontsource/poppins";
 
 export default function Home() {
@@ -12,10 +14,12 @@ export default function Home() {
     <main className="">
       <Header></Header>
       <Cellphone></Cellphone>
-      <Cadastre></Cadastre>
+      <HowItWorks></HowItWorks>
       <Content></Content>
       <Carrossel></Carrossel>
-      <Convite></Convite>
+      {/* <Convite></Convite> */}
+      <Cadastre></Cadastre>
+      <Partners></Partners>
       <Footer></Footer>
     </main>
   );
