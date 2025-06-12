@@ -8,6 +8,7 @@ import { Footer } from "@/components/landingpage/footer";
 import { HowItWorks } from "@/components/landingpage/how-it-works";
 import { Partners } from "@/components/landingpage/partners";
 import "@fontsource/poppins";
+import { Sponsors } from "@/components/landingpage/sponsors";
 
 export default function Home() {
   return (
@@ -20,6 +21,7 @@ export default function Home() {
       {/* <Convite></Convite> */}
       <Cadastre></Cadastre>
       <Partners></Partners>
+      <Sponsors></Sponsors>
       <Footer></Footer>
     </main>
   );

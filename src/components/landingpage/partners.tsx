@@ -3,20 +3,16 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 
 export function Partners() {
-  // Array com 12 parceiros (você deve substituir pelos logos reais)
+  // Array com 8 parceiros
   const partners = [
-    { id: 1, name: "Parceiro 1", logo: "/parceiros/lei-rouanet.png" },
-    { id: 2, name: "Parceiro 2", logo: "/parceiros/coca-cola.png.png" },
-    { id: 3, name: "Parceiro 3", logo: "/parceiros/aposta-ganha.png" },
-    { id: 4, name: "Parceiro 4", logo: "/parceiros/petrobras.png" },
-    { id: 5, name: "Parceiro 5", logo: "/parceiros/ademicon.png" },
-    { id: 6, name: "Parceiro 6", logo: "/parceiros/loteria-caixa.png" },
-    { id: 7, name: "Parceiro 7", logo: "/parceiros/boticario.png" },
-    { id: 8, name: "Parceiro 8", logo: "/parceiros/electrolux.png" },
-    { id: 9, name: "Parceiro 9", logo: "/parceiros/banco-do-nordeste.png" },
-    { id: 10, name: "Parceiro 10", logo: "/parceiros/prefeitura-caruaru.png" },
-    { id: 11, name: "Parceiro 11", logo: "/parceiros/GovPERGB.png" },
-    { id: 12, name: "Parceiro 12", logo: "/parceiros/governo-federal.png" },
+    { id: 1, name: "Coca-Cola", logo: "/parceiros/coca-cola.png.png" },
+    { id: 2, name: "Aposta Ganha", logo: "/parceiros/aposta-ganha.png" },
+    { id: 3, name: "Petrobras", logo: "/parceiros/petrobras.png" },
+    { id: 4, name: "Ademicon", logo: "/parceiros/ademicon.png" },
+    { id: 5, name: "Loteria Caixa", logo: "/parceiros/loteria-caixa.png" },
+    { id: 6, name: "O Boticário", logo: "/parceiros/boticario.png" },
+    { id: 7, name: "Electrolux", logo: "/parceiros/electrolux.png" },
+    { id: 8, name: "Banco do Nordeste", logo: "/parceiros/banco-do-nordeste.png" },
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -40,8 +36,8 @@ export function Partners() {
           Nossos Parceiros
         </h2>
 
-        {/* Grid para Desktop */}
-        <div className="hidden lg:grid lg:grid-cols-5 gap-8 items-center justify-items-center">
+        {/* Grid para Desktop - 4x2 para 8 parceiros */}
+        <div className="hidden lg:grid lg:grid-cols-4 gap-8 items-center justify-items-center">
           {partners.map((partner) => (
             <div
               key={partner.id}
@@ -83,9 +79,9 @@ export function Partners() {
             </div>
           </div>
 
-          {/* Indicadores */}
+          {/* Indicadores - para 8 parceiros, serão 3 grupos */}
           <div className="flex justify-center mt-6 space-x-2">
-            {partners.slice(0, 5).map((_, index) => (
+            {Array.from({ length: 3 }).map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index * 3)}
@@ -97,16 +93,6 @@ export function Partners() {
             ))}
           </div>
         </div>
-
-        {/* Call to Action */}
-        {/* <div className="text-center mt-12">
-          <p className="text-gray-600 mb-4">
-            Junte-se aos nossos parceiros e faça parte da revolução sustentável
-          </p>
-          <button className="bg-[#003F25] text-white font-semibold px-8 py-3 rounded-lg hover:bg-[#005c38] transition-colors duration-300">
-            Seja um Parceiro
-          </button>
-        </div> */}
       </div>
     </div>
   );

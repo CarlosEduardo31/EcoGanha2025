@@ -3,23 +3,30 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 
 export function Carrossel() {
-  // Adicione mais itens ao carrossel conforme necessário
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const carouselItems = [
     {
       id: 1,
-      image: "/ImageCarrossel1.svg",
+      // Imagens específicas para cada breakpoint
+      imageMobile: "/carousel/mobile/1.svg",    // Exemplo: 343x192px (aprox.)
+      imageTablet: "",    // Exemplo: 736x256px (aprox.)
+      imageDesktop: "",  // Exemplo: 1408x320px (aprox.)
       title: "Redução de Resíduos",
       description: "Ajude a reduzir o impacto ambiental do São João de Caruaru"
     },
     {
       id: 2,
-      image: "/ImageCarrossel1.svg", // Substitua pelo caminho correto da imagem
+      imageMobile: "/carousel/mobile/2.svg",
+      imageTablet: "",
+      imageDesktop: "",
       title: "Ganhe Descontos",
       description: "Troque pontos por descontos exclusivos em produtos e serviços"
     },
     {
       id: 3,
-      image: "/ImageCarrossel1.svg", // Substitua pelo caminho correto da imagem
+      imageMobile: "/carousel/mobile/3.svg",
+      imageTablet: "",
+      imageDesktop: "",
       title: "Proteja o Meio Ambiente",
       description: "Contribua para um futuro mais sustentável para nossa cidade"
     }
@@ -28,17 +35,18 @@ export function Carrossel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [currentImageSrc, setCurrentImageSrc] = useState("");
 
   // Função para avançar o carrossel
   const nextSlide = useCallback(() => {
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === carouselItems.length - 1 ? 0 : prevIndex + 1
     );
   }, [carouselItems.length]);
 
   // Função para voltar o carrossel
   const prevSlide = useCallback(() => {
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === 0 ? carouselItems.length - 1 : prevIndex - 1
     );
   }, [carouselItems.length]);
@@ -51,6 +59,29 @@ export function Carrossel() {
 
     return () => clearInterval(interval);
   }, [nextSlide]);
+
+  // Lógica para determinar a imagem a ser exibida com base no tamanho da tela
+  useEffect(() => {
+    const updateImageSrc = () => {
+      const currentItem = carouselItems[currentIndex];
+      const screenWidth = window.innerWidth;
+
+      if (screenWidth >= 1024) { // Desktop (lg breakpoint)
+        setCurrentImageSrc(currentItem.imageDesktop);
+      } else if (screenWidth >= 768) { // Tablet (md breakpoint)
+        setCurrentImageSrc(currentItem.imageTablet);
+      } else if (screenWidth >= 640) { // Pequeno Tablet (sm breakpoint)
+        setCurrentImageSrc(currentItem.imageTablet); // Pode usar a mesma imagem de tablet ou criar uma específica
+      } else { // Mobile (default)
+        setCurrentImageSrc(currentItem.imageMobile);
+      }
+    };
+
+    updateImageSrc(); // Define a imagem inicial
+    window.addEventListener("resize", updateImageSrc); // Atualiza ao redimensionar
+
+    return () => window.removeEventListener("resize", updateImageSrc);
+  }, [currentIndex, carouselItems]); // Adicionado carouselItems como dependência
 
   // Manipuladores de eventos de toque para suporte a gestos móveis
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -80,37 +111,43 @@ export function Carrossel() {
       </h2>
 
       {/* Container principal do carrossel */}
-      <div 
+      <div
         className="relative overflow-hidden rounded-lg shadow-lg"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         {/* Slides do carrossel */}
-        <div 
+        <div
           className="flex transition-transform duration-500 ease-in-out h-48 sm:h-64 md:h-72 lg:h-80"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
-          {carouselItems.map((item) => (
+          {carouselItems.map((item, index) => (
             <div key={item.id} className="min-w-full relative">
-              <Image
-                src={item.image}
-                alt={item.title}
-                width={1000}
-                height={1000}
-                className="w-full h-full object-cover"
-                priority={item.id === 1}
-              />
+              {/* Renderiza a imagem apenas se currentImageSrc for a da imagem atual */}
+              {index === currentIndex && currentImageSrc && (
+                <Image
+                  src={currentImageSrc} // Usa a imagem dinâmica
+                  alt={item.title}
+                  width={1} // Next.js requer width/height, mas eles serão sobrescritos por w-full h-full e object-contain
+                  height={1}
+                  className="w-full h-full object-cover" // Alterado para object-contain
+                  priority={item.id === 1}
+                />
+              )}
+              {/* Adiciona um fundo para preencher os espaços vazios de object-contain */}
+              <div className="absolute inset-0 bg-gray-200 -z-10" />
+
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                <h2 className="text-white font-semibold text-lg">{item.title}</h2>
-                <p className="text-white text-sm">{item.description}</p>
+                {/* <h2 className="text-white font-semibold text-lg">{item.title}</h2>
+                <p className="text-white text-sm">{item.description}</p> */}
               </div>
             </div>
           ))}
         </div>
 
         {/* Botões de navegação */}
-        <button 
+        <button
           onClick={prevSlide}
           className="absolute top-1/2 left-2 -translate-y-1/2 bg-white/30 hover:bg-white/50 rounded-full p-2 focus:outline-none"
           aria-label="Slide anterior"
@@ -119,7 +156,7 @@ export function Carrossel() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <button 
+        <button
           onClick={nextSlide}
           className="absolute top-1/2 right-2 -translate-y-1/2 bg-white/30 hover:bg-white/50 rounded-full p-2 focus:outline-none"
           aria-label="Próximo slide"

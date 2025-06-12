@@ -6,6 +6,18 @@ export function Cellphone() {
     <div className="min-h-[55vh] sm:min-h-[70vh] lg:min-h-[80vh] flex items-center relative">
       {/* Layout para mobile - padrão UX otimizado */}
       <div className="lg:hidden w-full px-4 py-8 text-center">
+
+        {/* Imagem do celular - menor e complementar */}
+          <div className="flex justify-center mb-7">
+            <Image
+              src="/celular.png"
+              alt="App EcoGanha"
+              width={1000}
+              height={1000}
+              className="w-[35vh] sm:w-[40vh] max-w-[280px]"
+            />
+          </div>
+          
         <div className="max-w-sm mx-auto">
           {/* Título principal */}
           <h1 className="text-[#003f25] text-2xl sm:text-3xl font-bold font-poppins mb-3">
@@ -29,17 +41,6 @@ export function Cellphone() {
           >
             Cadastre-se Grátis
           </Link>
-          
-          {/* Imagem do celular - menor e complementar */}
-          <div className="flex justify-center">
-            <Image
-              src="/celular.svg"
-              alt="App EcoGanha"
-              width={1000}
-              height={1000}
-              className="w-[35vh] sm:w-[40vh] max-w-[280px]"
-            />
-          </div>
         </div>
         
         {/* Elemento decorativo sutil */}
@@ -79,7 +80,7 @@ export function Cellphone() {
           {/* <div className="absolute -left-20 top-1/2 transform -translate-y-1/2 bg-[#FBCA27] h-[25vh] w-[25vh] rounded-full opacity-80 -z-10"></div> */}
           
           <Image
-            src="/celular.svg"
+            src="/celular.png"
             alt="Celular EcoGanha"
             width={1000}
             height={1000}
