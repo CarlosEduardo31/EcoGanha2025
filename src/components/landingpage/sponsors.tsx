@@ -78,12 +78,12 @@ export function Sponsors() {
             >
               {sponsors.map((sponsor) => (
                 <div key={sponsor.id} className="min-w-full px-4">
-                  <div className="w-full h-20 flex items-center justify-center p-3 bg-gray-50 rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105">
+                  <div className="w-full h-32 flex items-center justify-center p-4 bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105">
                     <Image
                       src={sponsor.logo}
                       alt={sponsor.name}
-                      width={120}
-                      height={70}
+                      width={160}
+                      height={90}
                       className="max-w-full max-h-full object-contain transition-transform duration-300"
                     />
                   </div>

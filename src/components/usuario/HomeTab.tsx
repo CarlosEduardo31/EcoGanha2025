@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { User } from '@/contexts/AuthContext';
 import { Partner, RecycleTransaction, SelectedPartner, UserTabType } from '@/types/comum';
+import { SponsorsSection } from './SponsorsSection';
 
 interface HomeTabProps {
   user: User;
@@ -56,6 +57,8 @@ const HomeTab: React.FC<HomeTabProps> = ({
           </div>
         </div>
       </div>
+
+      <SponsorsSection />
 
       {/* Histórico de Atividades */}
       <div className="bg-white rounded-lg shadow-md p-4 mb-6">

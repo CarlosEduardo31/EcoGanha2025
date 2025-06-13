@@ -17,7 +17,7 @@ export default function Home() {
       <Cellphone></Cellphone>
       <HowItWorks></HowItWorks>
       <Content></Content>
-      <Carrossel></Carrossel>
+      {/* <Carrossel></Carrossel> */}
       {/* <Convite></Convite> */}
       <Cadastre></Cadastre>
       <Partners></Partners>
