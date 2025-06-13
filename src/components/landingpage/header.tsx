@@ -10,29 +10,36 @@ export function Header() {
 
   return (
     <div className="w-full h-16 sm:h-20">
-      <div className="bg-[#FBCA27] w-full h-16 sm:h-20 flex justify-between md:justify-around items-center shadow-lg fixed z-20 px-4 sm:px-6">
-        <button 
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="focus:outline-none"
-        >
+      <div className="bg-[#FBCA27] w-full h-16 sm:h-20 grid grid-cols-3 items-center shadow-lg fixed z-20 px-4 sm:px-6">
+        {/* Seção Esquerda - Botão Menu */}
+        <div className="flex justify-start">
+          <button 
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="focus:outline-none"
+          >
+            <Image
+              alt="Menu"
+              height={100}
+              width={100}
+              src={"/menu-svgrepo-com (2).svg"}
+              className="w-6 h-6 sm:w-8 sm:h-8"
+            />
+          </button>
+        </div>
+        
+        {/* Seção Centro - Logo */}
+        <div className="flex justify-center">
           <Image
-            alt="Menu"
-            height={100}
-            width={100}
-            src={"/menu-svgrepo-com (2).svg"}
-            className="w-6 h-6 sm:w-8 sm:h-8"
+            alt="Logo"
+            height={1000}
+            width={1000}
+            src={"/logoSVG.svg"}
+            className="w-16 h-16 sm:w-20 sm:h-20"
           />
-        </button>
+        </div>
         
-        <Image
-          alt="Logo"
-          height={1000}
-          width={1000}
-          src={"/logoSVG.svg"}
-          className="w-16 h-16 sm:w-20 sm:h-20"
-        />
-        
-        <div className="flex items-center space-x-2">
+        {/* Seção Direita - Botão Entrar/Sair */}
+        <div className="flex justify-end">
           {user ? (
             <button 
               onClick={logout}
@@ -47,16 +54,6 @@ export function Header() {
               </span>
             </Link>
           )}
-          
-          {/* <Link href={"../TelaPremios"} className="transition-transform hover:scale-105">
-            <Image
-              alt="Botão de prêmios"
-              height={1000}
-              width={1000}
-              src={"/buttonSVG.svg"}
-              className="w-12 h-12 sm:w-16 sm:h-16 drop-shadow"
-            />
-          </Link> */}
         </div>
       </div>
       
@@ -69,7 +66,8 @@ export function Header() {
                 <Link href="/" className="block text-[#003F25] font-medium">
                   Início
                 </Link>
-              </li>{!user && (
+              </li>
+              {!user && (
                 <li className="p-2 hover:bg-gray-100 rounded-md">
                   <Link href="/login" className="block text-[#003F25] font-medium">
                     Login

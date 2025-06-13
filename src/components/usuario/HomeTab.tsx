@@ -46,9 +46,9 @@ const HomeTab: React.FC<HomeTabProps> = ({
                 height={80}
                 className="w-20 h-20"
               />
-              <span className="absolute bottom-0 right-0 bg-[#003F25] text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+              {/* <span className="absolute bottom-0 right-0 bg-[#003F25] text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                 1
-              </span>
+              </span> */}
             </div>
           </div>
           <h1 className="text-[#003E25] font-semibold text-xl mt-2">{user.name}</h1>
