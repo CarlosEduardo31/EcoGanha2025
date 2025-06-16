@@ -181,11 +181,11 @@ const HomeTab: React.FC<HomeTabProps> = ({
                         <>
                           {/* NOVO: Mostrar imagem da oferta */}
                           {availableOffer.image ? (
-                            <img
-                              src={availableOffer.image}
-                              alt={availableOffer.title}
-                              className="w-full h-24 object-scale-down rounded-md border border-gray-200 mb-2"
-                            />
+                           <img
+                            src={availableOffer.image}
+                            alt={availableOffer.title}
+                            className="w-full h-20 sm:h-24 md:h-28 object-scale-down rounded-md border border-gray-200 mb-2"
+                          />
                           ) : (
                             <div className="w-full h-24 bg-gray-100 rounded-md border border-gray-200 mb-2 flex items-center justify-center">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
