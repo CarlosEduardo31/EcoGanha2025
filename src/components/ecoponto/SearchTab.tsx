@@ -280,11 +280,11 @@ const SearchTab: React.FC<SearchTabProps> = ({
             </div>
 
             {/* ← DEBUG INFO - REMOVER EM PRODUÇÃO */}
-            <div className="mb-3 p-2 bg-yellow-50 rounded-lg border border-yellow-200 text-xs">
+            {/* <div className="mb-3 p-2 bg-yellow-50 rounded-lg border border-yellow-200 text-xs">
               <div className="text-yellow-700">
                 <strong>Debug:</strong> Mode: {mode}, isWeight: {String(isWeight)}, currentValue: &quot;{currentValue}&quot;, weight: &quot;{weight}&quot;, quantity: &quot;{quantity}&quot;
               </div>
-            </div>
+            </div> */}
             
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">Material Reciclável</label>
