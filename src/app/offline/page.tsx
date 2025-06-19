@@ -1,14 +1,30 @@
-// src/app/offline/page.tsx - PÁGINA OFFLINE MÍNIMA
+// src/app/offline/page.tsx - PÁGINA OFFLINE CORRIGIDA
+
+'use client'
 
 export default function OfflinePage() {
+  const handleReload = () => {
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  };
+
+  const handleGoBack = () => {
+    if (typeof window !== 'undefined') {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = '/';
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
         {/* Ícone offline */}
         <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-6 flex items-center justify-center">
-          <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636L5.636 18.364m12.728 0L5.636 5.636" />
-          </svg>
+          <div className="w-10 h-10 text-gray-400">✕</div>
         </div>
         
         {/* Título */}
@@ -22,14 +38,14 @@ export default function OfflinePage() {
         {/* Botões */}
         <div className="space-y-3">
           <button 
-            onClick={() => window.location.reload()}
+            onClick={handleReload}
             className="w-full bg-[#003F25] text-white px-6 py-3 rounded-lg hover:bg-[#002918] transition-colors"
           >
             Tentar novamente
           </button>
           
           <button 
-            onClick={() => window.history.back()}
+            onClick={handleGoBack}
             className="w-full bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors"
           >
             Voltar
