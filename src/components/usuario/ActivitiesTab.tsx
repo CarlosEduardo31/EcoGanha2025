@@ -1,12 +1,19 @@
-// src/components/usuario/ActivitiesTab.tsx
+// src/components/usuario/ActivitiesTab.tsx - CORRIGIDO PARA DUAL MODE
 
 import React from 'react';
 import { User } from '@/contexts/AuthContext';
-import { RecycleTransaction, UserTabType } from '@/types/comum';
+import { UserTabType } from '@/types/comum'; // Manter apenas tipos não conflitantes
+import { RecycleTransaction } from '@/types/dual-mode'; // MUDANÇA: Importar do dual-mode
+import { useCountingMode } from '@/hooks/useCountingMode';
+import { 
+  QuantityDisplay, 
+  StatsDisplay, 
+  ModeIndicator 
+} from '@/components/common/AdaptiveComponents';
 
 interface ActivitiesTabProps {
   user: User;
-  recycleHistory: RecycleTransaction[];
+  recycleHistory: RecycleTransaction[]; // Agora usa o tipo correto
   onTabChange: (tab: UserTabType) => void;
 }
 
@@ -26,6 +33,30 @@ const ActivitiesTab: React.FC<ActivitiesTabProps> = ({
   recycleHistory, 
   onTabChange 
 }) => {
+  // Hook para modo de contagem
+  const { mode, loading: modeLoading, isWeight, getStatsLabel } = useCountingMode();
+
+  // Função para calcular total baseado no modo
+  const calculateTotal = (transactions: RecycleTransaction[]): number => {
+    return transactions.reduce((sum, item) => {
+      const value = isWeight ? (Number(item.weight) || 0) : (Number(item.quantity) || 0);
+      return sum + value;
+    }, 0);
+  };
+
+  // Função para calcular estatísticas de materiais baseado no modo
+  const calculateMaterialStats = (transactions: RecycleTransaction[]) => {
+    const materialStats = transactions.reduce((acc, item) => {
+      const value = isWeight ? (Number(item.weight) || 0) : (Number(item.quantity) || 0);
+      acc[item.materialName] = (acc[item.materialName] || 0) + value;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    return Object.entries(materialStats)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3);
+  };
+
   return (
     <div>
       <div className="mb-4">
@@ -40,7 +71,13 @@ const ActivitiesTab: React.FC<ActivitiesTabProps> = ({
         </button>
         
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <h2 className="text-[#003F25] font-semibold text-lg mb-4">Histórico de Reciclagem</h2>
+          {/* Header com indicador de modo */}
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-[#003F25] font-semibold text-lg">Histórico de Reciclagem</h2>
+            {!modeLoading && (
+              <ModeIndicator mode={mode} />
+            )}
+          </div>
           
           {recycleHistory.length > 0 ? (
             <div className="space-y-4">
@@ -62,9 +99,20 @@ const ActivitiesTab: React.FC<ActivitiesTabProps> = ({
                           Local: {activity.ecoPointName}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          <div className="bg-gray-100 px-2 py-1 rounded text-xs text-gray-700">
-                            Peso: {Number(activity.weight) || 0} kg
-                          </div>
+                          {/* Componente adaptativo para exibir quantidade */}
+                          {!modeLoading && (
+                            <QuantityDisplay 
+                              transaction={activity} 
+                              mode={mode}
+                            />
+                          )}
+                          
+                          {/* Sempre mostrar peso para dados históricos se disponível */}
+                          {isWeight === false && activity.weight > 0 && (
+                            <div className="bg-blue-100 px-2 py-1 rounded text-xs text-blue-700">
+                              Histórico: {Number(activity.weight) || 0} kg
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -96,8 +144,8 @@ const ActivitiesTab: React.FC<ActivitiesTabProps> = ({
           )}
         </div>
 
-        {/* Estatísticas do usuário */}
-        {recycleHistory.length > 0 && (
+        {/* Estatísticas do usuário - ADAPTADAS PARA DUAL MODE */}
+        {recycleHistory.length > 0 && !modeLoading && (
           <div className="bg-white rounded-lg shadow-md p-4">
             <h3 className="text-[#003F25] font-semibold text-lg mb-4">Suas Estatísticas</h3>
             
@@ -109,30 +157,31 @@ const ActivitiesTab: React.FC<ActivitiesTabProps> = ({
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                <p className="text-sm text-gray-500">Material Reciclado (kg)</p>
+                {/* Estatística adaptativa baseada no modo */}
+                <p className="text-sm text-gray-500">{getStatsLabel()}</p>
                 <p className="text-xl font-bold text-[#003F25]">
-                  {recycleHistory.reduce((sum, item) => sum + (Number(item.weight) || 0), 0).toFixed(1)}
+                  {isWeight 
+                    ? calculateTotal(recycleHistory).toFixed(1)
+                    : calculateTotal(recycleHistory).toString()
+                  }
                 </p>
               </div>
             </div>
 
-            {/* Materiais mais reciclados */}
+            {/* Materiais mais reciclados - ADAPTADO */}
             <div className="border-t pt-4">
-              <h4 className="font-medium text-gray-700 mb-3">Materiais mais reciclados</h4>
+              <h4 className="font-medium text-gray-700 mb-3">
+                Materiais mais reciclados 
+                <span className="text-sm text-gray-500 ml-1">
+                  ({isWeight ? 'por peso' : 'por quantidade'})
+                </span>
+              </h4>
               {(() => {
-                const materialStats = recycleHistory.reduce((acc, item) => {
-                  const weight = Number(item.weight) || 0;
-                  acc[item.materialName] = (acc[item.materialName] || 0) + weight;
-                  return acc;
-                }, {} as Record<string, number>);
-                
-                const sortedMaterials = Object.entries(materialStats)
-                  .sort(([,a], [,b]) => b - a)
-                  .slice(0, 3);
+                const sortedMaterials = calculateMaterialStats(recycleHistory);
 
                 return sortedMaterials.length > 0 ? (
                   <div className="space-y-2">
-                    {sortedMaterials.map(([material, weight], index) => (
+                    {sortedMaterials.map(([material, value], index) => (
                       <div key={material} className="flex justify-between items-center py-2 border-b last:border-0">
                         <div className="flex items-center">
                           <span className={`w-6 h-6 rounded-full text-white text-xs flex items-center justify-center mr-2 ${
@@ -143,7 +192,9 @@ const ActivitiesTab: React.FC<ActivitiesTabProps> = ({
                           </span>
                           <span className="font-medium">{material}</span>
                         </div>
-                        <span className="text-sm text-gray-600">{weight.toFixed(1)} kg</span>
+                        <span className="text-sm text-gray-600">
+                          {isWeight ? `${value.toFixed(1)} kg` : `${value} unidades`}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -151,6 +202,37 @@ const ActivitiesTab: React.FC<ActivitiesTabProps> = ({
                   <p className="text-gray-500 text-sm">Nenhum dado disponível</p>
                 );
               })()}
+            </div>
+
+            {/* Informação sobre modo dual (para usuários que têm dados históricos) */}
+            {isWeight === false && recycleHistory.some(t => t.weight > 0) && (
+              <div className="border-t pt-4 mt-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center text-blue-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-sm font-medium">Dados Históricos</span>
+                  </div>
+                  <p className="text-sm text-blue-700 mt-1">
+                    Você tem dados de reciclagem tanto por peso quanto por unidade. 
+                    O sistema agora está configurado para mostrar por unidades.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Loading state para modo */}
+        {modeLoading && (
+          <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+              <div className="space-y-3">
+                <div className="h-4 bg-gray-200 rounded"></div>
+                <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+              </div>
             </div>
           </div>
         )}

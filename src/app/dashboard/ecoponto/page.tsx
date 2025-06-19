@@ -1,10 +1,18 @@
-// src/app/dashboard/ecoponto/page.tsx - CORRIGIDO
+// src/app/dashboard/ecoponto/page.tsx - FIX FINAL PARA QUANTIDADE
 
 "use client"
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Material, Transaction, UserData, EcoPointTabType } from '@/types/ecoponto';
+import { useCountingMode } from '@/hooks/useCountingMode';
+import { 
+  Material, 
+  Transaction, 
+  UserData, 
+  EcoPointTabType,
+  TransactionData,
+  EcoPointStats
+} from '@/types/ecoponto';
 import { materialService } from '@/services/materialService';
 import { transactionService } from '@/services/transactionService';
 import { ecoPointService } from '@/services/ecoPointService';
@@ -19,43 +27,50 @@ import ProfileTab from '@/components/ecoponto/ProfileTab';
 import BottomNavigation from '@/components/ecoponto/BottomNavigation';
 
 export default function EcoPontoDashboardPage() {
-  const { user, isAuthenticated, findUserByPhone, addPoints, logout, isLoading } = useAuth(); // ← ADICIONAR isLoading
+  const { user, isAuthenticated, findUserByPhone, logout, isLoading } = useAuth();
+  const { 
+    mode, 
+    loading: modeLoading, 
+    isWeight, 
+    getLabel, 
+    getInputLabel 
+  } = useCountingMode();
+  
   const [searchPhone, setSearchPhone] = useState('');
   const [foundUser, setFoundUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [selectedMaterial, setSelectedMaterial] = useState<string>('');
-  const [weight, setWeight] = useState<string>('');
+  const [weight, setWeight] = useState<string>(''); // ← USADO PARA AMBOS OS MODOS
   const [activeTab, setActiveTab] = useState<EcoPointTabType>('search');
   const [recentUsers, setRecentUsers] = useState<UserData[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [ecoPointId, setEcoPointId] = useState<string>('');
   const [ecoPointName, setEcoPointName] = useState<string>('');
-  const [statsData, setStatsData] = useState({
-    totalRecycledToday: '0',
+  const [statsData, setStatsData] = useState<EcoPointStats>({
+    totalRecycledToday: 0,
     pointsDistributed: 0,
     usersServed: 0,
-    mostRecycledMaterial: '',
-    materialDistribution: []
+    mostRecycledMaterial: null,
+    materialDistribution: [],
+    counting_mode: 'weight',
+    unit_label: 'kg'
   });
+  
   const router = useRouter();
 
-  // ← CORREÇÃO PRINCIPAL: Aguardar loading do AuthContext terminar
-  // Verificar autenticação APENAS quando não estiver carregando
+  // Verificar autenticação
   useEffect(() => {
-    // Se ainda está carregando, não fazer nada
-    if (isLoading) return;
+    if (isLoading || modeLoading) return;
     
-    // Se terminou de carregar e não está autenticado, redirecionar
     if (!isAuthenticated) {
       console.log('Usuário não autenticado, redirecionando para login...');
       router.push('/login');
       return;
     }
     
-    // Se está autenticado mas não é operador de ecoponto, redirecionar
     if (user?.userType !== 'ecoponto') {
       console.log(`Usuário tipo ${user?.userType}, redirecionando...`);
       router.push(`/dashboard/${user?.userType}`);
@@ -63,12 +78,11 @@ export default function EcoPontoDashboardPage() {
     }
     
     console.log('Usuário autenticado e é operador de ecoponto, continuando...');
-  }, [isAuthenticated, user, router, isLoading]); // ← ADICIONAR isLoading na dependência
+  }, [isAuthenticated, user, router, isLoading, modeLoading]);
 
-  // Buscar o ecoPointId associado ao operador
+  // Buscar EcoPoint do operador
   useEffect(() => {
-    // ← AGUARDAR autenticação estar completa
-    if (isLoading || !isAuthenticated || user?.userType !== 'ecoponto') return;
+    if (isLoading || modeLoading || !isAuthenticated || user?.userType !== 'ecoponto') return;
     
     const fetchEcoPointId = async () => {
       try {
@@ -78,94 +92,87 @@ export default function EcoPontoDashboardPage() {
         console.log(`EcoPonto encontrado: ${ecoPoint.name} (ID: ${ecoPoint.id})`);
       } catch (error) {
         console.error('Erro ao buscar ID do ecoponto:', error);
-        // Fallback para um ID padrão em caso de erro
         setEcoPointId('1');
         setEcoPointName('Eco Ponto');
       }
     };
 
     fetchEcoPointId();
-  }, [isAuthenticated, user, isLoading]); // ← ADICIONAR isLoading na dependência
+  }, [isAuthenticated, user, isLoading, modeLoading]);
 
-  // Carregar dados iniciais (após ter o ecoPointId)
+  // Carregar dados iniciais
   useEffect(() => {
-    // ← AGUARDAR autenticação estar completa
-    if (isLoading || !isAuthenticated || user?.userType !== 'ecoponto' || !ecoPointId) return;
+    if (isLoading || modeLoading || !isAuthenticated || user?.userType !== 'ecoponto' || !ecoPointId) return;
     
     const loadInitialData = async () => {
       setLoading(true);
       try {
-        console.log(`Carregando dados para o EcoPonto ID: ${ecoPointId}`);
+        console.log(`Carregando dados para o EcoPonto ID: ${ecoPointId}, Modo: ${mode}`);
         
         // Carregar materiais
         const materialsData = await materialService.listAll();
         setMaterials(materialsData);
         console.log(`${materialsData.length} materiais carregados`);
 
-        // Carregar transações recentes
-        const transactionsData = await transactionService.listByEcoPoint(ecoPointId);
-        setTransactions(transactionsData);
-        console.log(`${transactionsData.length} transações carregadas`);
+        // Carregar transações com suporte dual mode
+        const transactionsResult = await transactionService.getByEcoPoint(ecoPointId);
+        setTransactions(transactionsResult.transactions || []);
+        console.log(`${transactionsResult.transactions?.length || 0} transações carregadas`);
 
-        // Carregar estatísticas
-        const statsData = await ecoPointService.getStats(ecoPointId);
+        // Carregar estatísticas com suporte dual mode
+        const statsData = await transactionService.getEcoPointStats(ecoPointId);
         setStatsData(statsData);
         
         // Extrair usuários recentes das transações
-        const userIds = Array.from(new Set(transactionsData.map((t: any) => t.userId)));
-        const uniqueUsers: UserData[] = [];
+        await loadRecentUsers(transactionsResult.transactions || []);
         
-        // Para cada ID de usuário, buscar os dados completos
-        for (const userId of userIds) {
-          try {
-            // Buscar dados completos do usuário para ter os pontos atuais
-            const userResponse = await userService.getById(String(userId));
-            uniqueUsers.push({
-              id: userResponse.id,
-              name: userResponse.name,
-              phone: userResponse.phone,
-              userType: userResponse.userType,
-              points: userResponse.points
-            });
-          } catch (userError) {
-            // Fallback: usar dados da transação
-            const transaction = transactionsData.find((t: any) => t.userId === userId);
-            if (transaction) {
-              // Buscar o usuário pelo telefone para ter pontos atualizados
-              try {
-                const user = await userService.findByPhone(transaction.userPhone);
-                uniqueUsers.push({
-                  id: transaction.userId,
-                  name: transaction.userName,
-                  phone: transaction.userPhone,
-                  userType: 'comum',
-                  points: user?.points || 0
-                });
-              } catch (phoneError) {
-                // Último fallback: usar apenas os dados da transação
-                uniqueUsers.push({
-                  id: transaction.userId,
-                  name: transaction.userName,
-                  phone: transaction.userPhone,
-                  userType: 'comum',
-                  points: 0 // Valor padrão, mas pelo menos temos os dados básicos
-                });
-              }
-            }
-          }
-        }
-        
-        setRecentUsers(uniqueUsers.slice(0, 5));
-        console.log(`${uniqueUsers.length} usuários recentes encontrados`);
       } catch (error) {
         console.error('Erro ao carregar dados iniciais:', error);
+        setError('Erro ao carregar dados. Tente novamente.');
       } finally {
         setLoading(false);
       }
     };
 
     loadInitialData();
-  }, [isAuthenticated, user, ecoPointId, isLoading]); // ← ADICIONAR isLoading na dependência
+  }, [isAuthenticated, user, ecoPointId, isLoading, modeLoading, mode]);
+
+  // Função para carregar usuários recentes
+  const loadRecentUsers = async (transactionsData: Transaction[]) => {
+    try {
+      const userIds = Array.from(new Set(transactionsData.map((t: any) => t.userId)));
+      const uniqueUsers: UserData[] = [];
+      
+      for (const userId of userIds.slice(0, 5)) {
+        try {
+          const userResponse = await userService.getById(String(userId));
+          uniqueUsers.push({
+            id: userResponse.id,
+            name: userResponse.name,
+            phone: userResponse.phone,
+            userType: userResponse.userType,
+            points: userResponse.points
+          });
+        } catch (userError) {
+          const transaction = transactionsData.find((t: any) => t.userId === userId);
+          if (transaction) {
+            uniqueUsers.push({
+              id: String(userId),
+              name: transaction.userName,
+              phone: transaction.userPhone,
+              userType: 'comum',
+              points: 0
+            });
+          }
+        }
+      }
+      
+      setRecentUsers(uniqueUsers);
+      console.log(`${uniqueUsers.length} usuários recentes encontrados`);
+    } catch (error) {
+      console.error('Erro ao carregar usuários recentes:', error);
+    }
+  };
 
   // Buscar usuário pelo telefone
   const handleSearch = async (phone: string) => {
@@ -198,7 +205,7 @@ export default function EcoPontoDashboardPage() {
     }
   };
 
-  // Selecionar um usuário recente
+  // Selecionar usuário recente
   const handleSelectRecentUser = (selectedUser: UserData) => {
     setFoundUser(selectedUser);
     setSearchPhone(selectedUser.phone);
@@ -206,78 +213,26 @@ export default function EcoPontoDashboardPage() {
     setSuccess('');
   };
 
-  // Calcular pontos com base no material e peso
+  // ← FUNÇÃO ATUALIZADA PARA DUAL MODE (USANDO APENAS weight)
   const calculatePoints = (): number => {
-    try {
-      // Verificações iniciais
-      if (!selectedMaterial) {
-        console.log('Material não selecionado');
-        return 0;
-      }
-      
-      if (!weight || weight === '') {
-        console.log('Peso não informado');
-        return 0;
-      }
-      
-      // Verificar se temos materiais carregados
-      if (!materials || materials.length === 0) {
-        console.log('Lista de materiais vazia');
-        return 0;
-      }
-      
-      // Log para debug
-      console.log('Material selecionado ID:', selectedMaterial);
-      console.log('Peso informado:', weight);
-      console.log('Materiais disponíveis:', materials.map(m => `${m.id}: ${m.name} (${m.pointsPerKg})`));
-      
-      // Encontrar o material na lista
-      const material = materials.find(m => String(m.id) === String(selectedMaterial));
-      
-      if (!material) {
-        console.log(`Material com ID ${selectedMaterial} não encontrado na lista`);
-        return 0;
-      }
-      
-      console.log('Material encontrado:', material);
-      
-      // Converter peso para número
-      const weightNum = parseFloat(weight.replace(',', '.'));
-      
-      if (isNaN(weightNum)) {
-        console.log(`Peso inválido: ${weight}`);
-        return 0;
-      }
-      
-      console.log('Peso convertido:', weightNum);
-      
-      // Verificar se pointsPerKg existe e é um número
-      if (material.pointsPerKg === undefined || material.pointsPerKg === null) {
-        console.log('Material não tem pointsPerKg definido');
-        return 0;
-      }
-      
-      const pointsPerKg = parseFloat(String(material.pointsPerKg));
-      
-      if (isNaN(pointsPerKg)) {
-        console.log(`pointsPerKg inválido: ${material.pointsPerKg}`);
-        return 0;
-      }
-      
-      console.log('Pontos por kg:', pointsPerKg);
-      
-      // Calcular pontos
-      const calculatedPoints = Math.round(pointsPerKg * weightNum);
-      console.log('Pontos calculados:', calculatedPoints);
-      
-      return calculatedPoints;
-    } catch (error) {
-      console.error('Erro ao calcular pontos:', error);
-      return 0;
+    if (!selectedMaterial || !materials.length || !weight) return 0;
+    
+    const material = materials.find(m => String(m.id) === String(selectedMaterial));
+    if (!material) return 0;
+    
+    const numericValue = parseFloat(weight.replace(',', '.'));
+    if (isNaN(numericValue) || numericValue <= 0) return 0;
+    
+    // Cálculo baseado no modo atual
+    if (isWeight) {
+      return Math.round(numericValue * material.pointsPerKg);
+    } else {
+      // No modo unidade, weight contém a quantidade
+      return Math.floor(numericValue) * material.pointsPerUnit;
     }
   };
 
-  // Adicionar pontos ao usuário
+  // ← FUNÇÃO ATUALIZADA PARA DUAL MODE
   const handleAddPoints = async () => {
     if (!foundUser) {
       setError('Nenhum usuário selecionado');
@@ -289,13 +244,14 @@ export default function EcoPontoDashboardPage() {
       return;
     }
 
-    if (!weight || parseFloat(weight) <= 0) {
-      setError('Digite um peso válido');
+    if (!ecoPointId) {
+      setError('ID do EcoPonto não disponível. Tente novamente em instantes.');
       return;
     }
 
-    if (!ecoPointId) {
-      setError('ID do EcoPonto não disponível. Tente novamente em instantes.');
+    // ← VALIDAÇÃO ATUALIZADA (usando apenas weight)
+    if (!weight || parseFloat(weight.replace(',', '.')) <= 0) {
+      setError(`Digite ${isWeight ? 'um peso' : 'uma quantidade'} válida`);
       return;
     }
 
@@ -310,50 +266,83 @@ export default function EcoPontoDashboardPage() {
     setSuccess('');
 
     try {
-      // Usando o ecoPointId obtido dinamicamente
-      await addPoints(foundUser.id, selectedMaterial, parseFloat(weight), ecoPointId);
+      // ← PREPARAR DADOS USANDO APENAS weight
+      const numericValue = parseFloat(weight.replace(',', '.'));
+      const transactionData: TransactionData = {
+        userId: foundUser.id,
+        materialId: selectedMaterial,
+        ecoPointId: ecoPointId,
+        ...(isWeight 
+          ? { weight: numericValue, quantity: 0 }
+          : { weight: 0, quantity: Math.floor(numericValue) } // weight contém a quantidade
+        )
+      };
+
+      console.log('📊 Dados da transação:', {
+        mode,
+        isWeight,
+        inputValue: weight,
+        numericValue,
+        transactionData
+      });
+
+      // Validar dados
+      const validation = transactionService.validateTransactionData(transactionData, mode);
+      if (!validation.isValid) {
+        setError(validation.errors.join(', '));
+        return;
+      }
+
+      // Criar transação
+      const result = await transactionService.create(transactionData);
       
-      // Criar nova transação para atualizar a UI imediatamente
+      // Criar nova transação para UI
       const material = materials.find(m => m.id === selectedMaterial);
-      const newTransaction = {
-        id: Date.now().toString(),
+      const newTransaction: Transaction = {
+        id: result.transaction.id,
         userName: foundUser.name,
         userPhone: foundUser.phone,
         material: material?.name || 'Desconhecido',
-        weight,
-        points: pointsToAdd,
-        date: new Date().toISOString()
+        materialName: material?.name || 'Desconhecido',
+        weight: result.transaction.weight,
+        quantity: result.transaction.quantity,
+        points: result.transaction.points,
+        date: result.transaction.date
       };
       
+      // Atualizar estado local
       setTransactions(prev => [newTransaction, ...prev]);
-      setSuccess(`${pointsToAdd} pontos adicionados com sucesso para ${foundUser.name}!`);
+      setFoundUser(result.user);
       
-      // Atualizar o usuário na lista de recentes
+      setSuccess(
+        `${result.transaction.points} pontos adicionados com sucesso para ${foundUser.name}! ` +
+        `(${isWeight ? `${numericValue}kg` : `${Math.floor(numericValue)} ${getLabel()}`})`
+      );
+      
+      // Atualizar usuários recentes
       setRecentUsers(prev => 
         prev.map(u => 
           u.id === foundUser.id 
-            ? { ...u, points: u.points + pointsToAdd } 
+            ? { ...u, points: result.user.points } 
             : u
         )
       );
       
-      // Limpar formulário
-      setFoundUser(null);
-      setSearchPhone('');
+      // ← LIMPAR APENAS weight
       setSelectedMaterial('');
       setWeight('');
       
       // Recarregar estatísticas
-      const updatedStats = await ecoPointService.getStats(ecoPointId);
+      const updatedStats = await transactionService.getEcoPointStats(ecoPointId);
       setStatsData(updatedStats);
+      
     } catch (error: any) {
-      // Tratamento mais detalhado do erro
+      console.error('❌ Erro completo:', error);
       if (error.response?.data?.message) {
         setError(`Erro: ${error.response.data.message}`);
       } else {
         setError('Erro ao adicionar pontos. Verifique sua conexão e tente novamente.');
       }
-      console.error('Erro ao adicionar pontos:', error);
     } finally {
       setLoading(false);
     }
@@ -364,13 +353,15 @@ export default function EcoPontoDashboardPage() {
     setActiveTab(tab);
   };
 
-  // ← MOSTRAR LOADING ENQUANTO AuthContext está verificando autenticação
-  if (isLoading) {
+  // Loading states
+  if (isLoading || modeLoading) {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-gray-50">
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#003F25] mb-4 mx-auto"></div>
-          <p className="text-gray-600 font-medium">Verificando autenticação...</p>
+          <p className="text-gray-600 font-medium">
+            {isLoading ? 'Verificando autenticação...' : 'Carregando configurações...'}
+          </p>
           <p className="text-gray-500 text-sm mt-2">Aguarde um momento</p>
         </div>
       </div>
@@ -390,7 +381,7 @@ export default function EcoPontoDashboardPage() {
     );
   }
 
-  // Renderiza o conteúdo com base na aba ativa
+  // Renderizar conteúdo baseado na aba ativa
   const renderContent = () => {
     switch (activeTab) {
       case 'search':
@@ -417,7 +408,7 @@ export default function EcoPontoDashboardPage() {
       case 'history':
         return <HistoryTab transactions={transactions} />;
       case 'stats':
-        return <StatsTab transactions={transactions} statsData={statsData} />;
+        return <StatsTab statsData={statsData} />;
       case 'profile':
         return <ProfileTab user={user} onLogout={logout} />;
       default:
@@ -446,7 +437,7 @@ export default function EcoPontoDashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 pb-24">
-      {/* Cabeçalho do operador */}
+      {/* Cabeçalho original mantido */}
       <div className="bg-[#FBCA27] rounded-lg p-4 shadow-md mb-6">
         <h1 className="text-[#003F25] text-xl font-bold text-center">{ecoPointName}</h1>
         <p className="text-center text-[#003F25]">Operador: {user.name}</p>

@@ -92,6 +92,8 @@ export function Login() {
         window.location.href = '/dashboard/ecoponto';
       } else if (user.userType === 'patrocinador') {
         window.location.href = '/dashboard/patrocinador';
+      } else if (user.userType === 'admin') {
+        window.location.href = '/dashboard/admin';
       } else {
         window.location.href = '/dashboard';
       }

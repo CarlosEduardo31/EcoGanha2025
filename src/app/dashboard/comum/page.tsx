@@ -1,4 +1,4 @@
-// src/app/dashboard/comum/page.tsx - CORRIGIDO
+// src/app/dashboard/comum/page.tsx - CORRIGIDO PARA DUAL MODE
 
 "use client"
 import { useEffect, useState } from 'react';
@@ -6,12 +6,12 @@ import { useRouter } from 'next/navigation';
 import { useAuth, User } from '@/contexts/AuthContext';
 import { 
   UserTabType, 
-  EcoPoint, 
   Partner, 
-  RecycleTransaction, 
   RedemptionTransaction, 
   SelectedPartner 
 } from '@/types/comum';
+// MUDANÇA: Importar tipos do dual-mode
+import { RecycleTransaction, EcoPoint } from '@/types/dual-mode';
 import { resourceService } from '@/services/resourceService';
 import { userService } from '@/services/userService';
 
@@ -26,19 +26,18 @@ import EditProfileTab from '@/components/usuario/EditProfileTab';
 import BottomNavigation from '@/components/layout/BottomNavigationComun';
 
 export default function UsuarioComumPage() {
-  const { user, isAuthenticated, logout, updateUserData, isLoading } = useAuth(); // ← ADICIONAR isLoading
+  const { user, isAuthenticated, logout, updateUserData, isLoading } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<UserTabType>('home');
   const [selectedPartner, setSelectedPartner] = useState<SelectedPartner | null>(null);
   const [loading, setLoading] = useState(false);
   
-  // Estados dos dados
+  // Estados dos dados - AGORA USA O TIPO CORRETO
   const [recycleHistory, setRecycleHistory] = useState<RecycleTransaction[]>([]);
   const [redemptionHistory, setRedemptionHistory] = useState<RedemptionTransaction[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [ecoPoints, setEcoPoints] = useState<EcoPoint[]>([]);
 
-  // ← CORREÇÃO PRINCIPAL: Aguardar loading do AuthContext terminar
   // Verificar autenticação APENAS quando não estiver carregando
   useEffect(() => {
     // Se ainda está carregando, não fazer nada
@@ -59,11 +58,11 @@ export default function UsuarioComumPage() {
     }
     
     console.log('Usuário autenticado e é do tipo comum, continuando...');
-  }, [isAuthenticated, user, router, isLoading]); // ← ADICIONAR isLoading na dependência
+  }, [isAuthenticated, user, router, isLoading]);
 
   // Carregar dados iniciais
   useEffect(() => {
-    // ← AGUARDAR autenticação estar completa antes de carregar dados
+    // Aguardar autenticação estar completa antes de carregar dados
     if (isLoading || !isAuthenticated || user?.userType !== 'comum') return;
     
     const loadInitialData = async () => {
@@ -74,8 +73,17 @@ export default function UsuarioComumPage() {
         // Carregar histórico de reciclagem
         try {
           const recycleData = await userService.getRecycleHistory();
-          setRecycleHistory(recycleData || []);
-          console.log(`${recycleData?.length || 0} transações de reciclagem carregadas`);
+          // IMPORTANTE: Transformar dados se necessário para garantir compatibilidade
+          const formattedData = recycleData?.map((item: any) => ({
+            ...item,
+            // Garantir que quantity existe, mesmo que seja 0 para dados antigos
+            quantity: item.quantity ?? 0,
+            // Garantir que weight existe
+            weight: item.weight ?? 0
+          } as RecycleTransaction)) || [];
+          
+          setRecycleHistory(formattedData);
+          console.log(`${formattedData?.length || 0} transações de reciclagem carregadas`);
         } catch (error) {
           console.error('Erro ao carregar histórico de reciclagem:', error);
           setRecycleHistory([]);
@@ -104,8 +112,21 @@ export default function UsuarioComumPage() {
         // Carregar eco pontos
         try {
           const ecoPointsData = await resourceService.getEcoPoints();
-          setEcoPoints(ecoPointsData || []);
-          console.log(`${ecoPointsData?.length || 0} ecopontos carregados`);
+          // IMPORTANTE: Transformar dados se necessário para garantir compatibilidade
+          const formattedEcoPoints = ecoPointsData?.map((ecoPoint: any) => ({
+            ...ecoPoint,
+            // Garantir que materials existe e tem as propriedades corretas
+            materials: ecoPoint.materials?.map((material: any) => ({
+              ...material,
+              // Garantir que pointsPerUnit existe, mesmo que seja 0 para dados antigos
+              pointsPerUnit: material.pointsPerUnit ?? 0,
+              // Manter pointsPerWeight se existir
+              pointsPerWeight: material.pointsPerWeight ?? 0
+            })) || []
+          } as EcoPoint)) || [];
+          
+          setEcoPoints(formattedEcoPoints);
+          console.log(`${formattedEcoPoints?.length || 0} ecopontos carregados`);
         } catch (error) {
           console.error('Erro ao carregar ecopontos:', error);
           setEcoPoints([]);
@@ -119,7 +140,7 @@ export default function UsuarioComumPage() {
     };
 
     loadInitialData();
-  }, [isAuthenticated, user, isLoading]); // ← ADICIONAR isLoading na dependência
+  }, [isAuthenticated, user, isLoading]);
 
    // Handler para mudança de aba
   const handleTabChange = (tab: UserTabType) => {
@@ -136,7 +157,7 @@ export default function UsuarioComumPage() {
     }
   };
 
-  // ← MOSTRAR LOADING ENQUANTO AuthContext está verificando autenticação
+  // Mostrar loading enquanto AuthContext está verificando autenticação
   if (isLoading) {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-gray-50">
