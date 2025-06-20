@@ -16,12 +16,11 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ user, onTabChange, onLogout }) 
   const openWhatsApp = () => {
     const phoneNumber = "5581991292488"; 
     const message = encodeURIComponent(
-      `Olá! Sou ${user.name} e preciso de ajuda com minha conta EcoGanha. 
-      
-Meu telefone cadastrado: ${user.phone}
-Meus pontos atuais: ${user.points} EcoPontos
-
-Como posso ser ajudado(a)?`
+      `Olá! Gostaria de solicitar suporte.
+Nome : ${user.name}
+Telefone: ${user.phone}
+Pontos: ${user.points}
+Por favor, descreva sua dúvida ou problema abaixo:`
     );
     
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
@@ -134,7 +133,7 @@ Como posso ser ajudado(a)?`
               </button>
               
               <div className="mt-3 text-xs text-green-600 text-center">
-                📞 Horário de atendimento: Seg-Sex 8h às 18h
+                📞 Horário de atendimento: Sex-Dom 17h às 22h
               </div>
             </div>
 

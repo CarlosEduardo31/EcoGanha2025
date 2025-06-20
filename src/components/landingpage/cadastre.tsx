@@ -9,7 +9,7 @@ export function Cadastre() {
         </h1>
         
         <p className="text-[#003f25] text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-12 px-2 sm:px-4 md:px-8">
-          Não fique de fora dessa transformação! Inscreva-se gratuitamente e receba em primeira mão quando for lançado. Faça parte da revolução sustentável.
+          Não fique de fora dessa transformação! Inscreva-se gratuitamente e comece agora fazer parte dessa mudança!
         </p>
         
         <Link
